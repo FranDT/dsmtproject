@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="FrameworkDetectionExcludesConfiguration">
+    <file type="web" url="file://$PROJECT_DIR$/AccessNode" />
+    <file type="web" url="file://$PROJECT_DIR$/AuthenticationNodeRest" />
+    <file type="web" url="file://$PROJECT_DIR$/AuthenticationNodeRest2" />
+  </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/AccessNode/pom.xml" />
+        <option value="$PROJECT_DIR$/AuthenticationNodeRest/pom.xml" />
+        <option value="$PROJECT_DIR$/AuthenticationNodeRest2/pom.xml" />
       </list>
     </option>
   </component>

@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="AuthenticationNodeRest2:war">
+    <output-path>$PROJECT_DIR$/AuthenticationNodeRest2/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>AuthenticationNodeRest2</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="AuthenticationNodeRest2-1.0-SNAPSHOT.war">
+      <element id="artifact" artifact-name="AuthenticationNodeRest2:war exploded" />
+    </root>
+  </artifact>
+</component>

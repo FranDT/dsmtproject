@@ -12,6 +12,8 @@
         <module>AuthenticationNode</module>
         <module>Client</module>
         <module>AccessNode</module>
+        <module>AuthenticationNodeRest</module>
+        <module>AuthenticationNodeRest2</module>
     </modules>
 
     <properties>

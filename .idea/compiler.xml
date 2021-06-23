@@ -7,13 +7,17 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="AuthenticationNode" />
-        <module name="Client" />
+        <module name="AuthenticationNodeRest" />
         <module name="AccessNode" />
+        <module name="Client" />
+        <module name="AuthenticationNodeRest2" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="AccessNode" target="1.8" />
       <module name="AuthenticationNode" target="1.8" />
+      <module name="AuthenticationNodeRest" target="1.8" />
+      <module name="AuthenticationNodeRest2" target="1.8" />
       <module name="Client" target="1.8" />
       <module name="dsmtproject" target="1.8" />
     </bytecodeTargetLevel>
