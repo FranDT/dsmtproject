@@ -10,7 +10,6 @@
         <module name="AuthenticationNodeRest" />
         <module name="AccessNode" />
         <module name="Client" />
-        <module name="AuthenticationNodeRest2" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

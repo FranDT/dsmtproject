@@ -5,7 +5,6 @@
       <module fileurl="file://$PROJECT_DIR$/AccessNode/AccessNode.iml" filepath="$PROJECT_DIR$/AccessNode/AccessNode.iml" />
       <module fileurl="file://$PROJECT_DIR$/AuthenticationNode/AuthenticationNode.iml" filepath="$PROJECT_DIR$/AuthenticationNode/AuthenticationNode.iml" />
       <module fileurl="file://$PROJECT_DIR$/AuthenticationNodeRest/AuthenticationNodeRest.iml" filepath="$PROJECT_DIR$/AuthenticationNodeRest/AuthenticationNodeRest.iml" />
-      <module fileurl="file://$PROJECT_DIR$/AuthenticationNodeRest2/AuthenticationNodeRest2.iml" filepath="$PROJECT_DIR$/AuthenticationNodeRest2/AuthenticationNodeRest2.iml" />
       <module fileurl="file://$PROJECT_DIR$/Client/Client.iml" filepath="$PROJECT_DIR$/Client/Client.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/dsmtproject.iml" filepath="$PROJECT_DIR$/.idea/dsmtproject.iml" />
     </modules>
