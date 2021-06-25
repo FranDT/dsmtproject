@@ -9,6 +9,8 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.util.List;
+
 public class RestClient extends Application {
 
     private static String urlBase;
@@ -102,6 +104,30 @@ public class RestClient extends Application {
 
     public static int delete(String key){
         webTarget = client.target(urlBase).path("data").path(key);
+        Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
+
+        Response response = invocationBuilder.delete();
+        MyResponse myResponse = response.readEntity(MyResponse.class);
+
+        return myResponse.getStatus();
+    }
+
+    public static String getList(){
+        webTarget = client.target(urlBase).path("control");
+        Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
+
+        Response response = invocationBuilder.get();
+        MyResponse myResponse = response.readEntity(MyResponse.class);
+
+        if(myResponse.getData() == null){
+            return "Cannot connect to the server";
+        }
+
+        return myResponse.getData();
+    }
+
+    public static int deleteConnection(String key){
+        webTarget = client.target(urlBase).path("control").path(key);
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
         Response response = invocationBuilder.delete();

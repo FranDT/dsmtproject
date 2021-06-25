@@ -5,8 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
 public class LayoutManager {
 
     private Stage primary;
@@ -23,13 +21,16 @@ public class LayoutManager {
 
     public void showAuthenticationPage(String path){
         FXMLLoader authLoader = getLoader(path);
+        System.out.println(path);
 
         try {
             primary.setScene(new Scene(authLoader.load(), 862, 628));
         }
-        catch(IOException ioe){
-            ioe.printStackTrace();
+        catch(Exception e){
+            e.printStackTrace();
         }
+        UIController controller = authLoader.getController();
+        controller.init();
     }
 
     public FXMLLoader getLoader(String path){

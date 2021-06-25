@@ -1,7 +1,5 @@
 package leveldb;
 
-import interfaces.AuthenticationManagerInterface;
-
 public class LevelDBAuthenticationManager extends LevelDBManager implements AuthenticationManagerInterface {
 
     private static LevelDBAuthenticationManager singletonDB;
@@ -18,7 +16,8 @@ public class LevelDBAuthenticationManager extends LevelDBManager implements Auth
         openDB(LevelDBManager.userTable);
     }
 
-    public void finalize() {
+    @Override
+    public void close() {
         //to be really sure
         closeDB();
     }

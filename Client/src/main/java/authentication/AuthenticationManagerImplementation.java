@@ -9,13 +9,12 @@ public class AuthenticationManagerImplementation implements AuthenticationManage
     private final String USERNAME_TAKEN = "This username is already taken";
     private final String USERNAME_INVALID_CHARS = "The username must contain only letters, numbers, or \"-\", \"_\" and \".\"";
     private final String CONNECTION_REFUSED = "Cannot connect to the server";
-    private RestClient restClient;
 
     AuthenticationManagerImplementation(){ }
 
     @Override
     public AuthResult login(String username, String psw) {
-        int checkResult = restClient.getAuthentication(username, securePassword(psw));
+        int checkResult = RestClient.getAuthentication(username, securePassword(psw));
         if(checkResult == 0){
             return new AuthResult(username, true, null);
         }
@@ -33,7 +32,7 @@ public class AuthenticationManagerImplementation implements AuthenticationManage
         if(!username.matches(usernameRegex)){
             return new AuthResult(null, false, USERNAME_INVALID_CHARS);
         }
-        int result = restClient.postNewUser(username, securePassword(psw));
+        int result = RestClient.postNewUser(username, securePassword(psw));
         if(result == 1){
             return new AuthResult(null, false, USERNAME_TAKEN);
         }
