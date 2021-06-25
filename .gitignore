@@ -1,2 +1,5 @@
 /AuthenticationNode/target/
 /user/
+/AccessNode/target/
+/AuthenticationNodeRest/target/
+/Client/target/
