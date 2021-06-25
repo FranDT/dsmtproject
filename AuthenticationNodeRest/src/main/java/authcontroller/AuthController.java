@@ -30,7 +30,7 @@ public class AuthController {
     }
 
     public static Response postNewUser(String username, String password){
-        if(manager.isUserPresent(username))
+        if(!manager.insertUser(username, password))
             return new Response(null, 1);
         return new Response(null, 0);
     }
