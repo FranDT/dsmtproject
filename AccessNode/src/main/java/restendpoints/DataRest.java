@@ -8,7 +8,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 
-@ApplicationPath("rest")
 @Path("data")
 public class DataRest extends Application {
 

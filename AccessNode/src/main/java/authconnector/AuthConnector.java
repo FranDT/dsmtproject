@@ -13,14 +13,12 @@ import javax.ws.rs.core.MediaType;
 public class AuthConnector {
     //TODO: Quale e' il senso di launched in questo contesto?
     private static boolean launched = true;
-    @Inject
-    private static Configuration config;
 
     public static boolean isLaunched() {return launched;}
 
     public static Response getAuthentication(String key){
         Client client = ClientBuilder.newClient(new ClientConfig().register(ClientResponseFilter.class));
-        WebTarget webTarget = client.target(config.getUrlAuthNode()).path("authentication").path(key);
+        WebTarget webTarget = client.target(Configuration.getUrlAuthNode()).path("rest").path("authentication").path(key);
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
         javax.ws.rs.core.Response response = invocationBuilder.get();
@@ -31,7 +29,7 @@ public class AuthConnector {
 
     public static Response postNewUser(Request request){
         Client client = ClientBuilder.newClient(new ClientConfig().register(ClientResponseFilter.class));
-        WebTarget webTarget = client.target(config.getUrlAuthNode()).path("authentication");
+        WebTarget webTarget = client.target(Configuration.getUrlAuthNode()).path("rest").path("authentication");
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
         javax.ws.rs.core.Response response = invocationBuilder.post(Entity.entity(request, MediaType.APPLICATION_JSON));

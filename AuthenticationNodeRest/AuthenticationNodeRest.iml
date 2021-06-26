@@ -37,7 +37,7 @@
     </content>
     <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="JAX-RS-2.1.1 (2)" level="project" />
+    <orderEntry type="library" name="JAX-RS-2.1.1" level="project" />
     <orderEntry type="library" name="Maven: org.iq80.leveldb:leveldb:0.12" level="project" />
     <orderEntry type="library" name="Maven: org.iq80.leveldb:leveldb-api:0.12" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:21.0" level="project" />

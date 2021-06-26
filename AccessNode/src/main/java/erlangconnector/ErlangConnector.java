@@ -16,16 +16,13 @@ public class ErlangConnector {
     private static final AtomicInteger counter = new AtomicInteger(0); //shared counter
     private static OtpNode clientNode;  //initialized in constructor
 
-    @Inject
-    private static Configuration config;
-
     static {
-        String cookie = config.getCookie();
-        serverNodeName = config.getControlNodeServerName();
-        serverRegisteredName = config.getControlNodeServerRegisteredName();
-        clientNodeName = config.getAccessNodeName();
+        String cookie = Configuration.getCookie();
+        serverNodeName = Configuration.getControlNodeServerName();
+        serverRegisteredName = Configuration.getControlNodeServerRegisteredName();
+        clientNodeName = Configuration.getAccessNodeName();
         try {
-            if (cookie != "") {
+            if (!cookie.equals("")) {
                 clientNode = new OtpNode(clientNodeName, cookie);
             }
             else {

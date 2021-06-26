@@ -19,6 +19,7 @@
       <module name="AuthenticationNodeRest2" target="1.8" />
       <module name="Client" target="1.8" />
       <module name="dsmtproject" target="1.8" />
+      <module name="ProvaAuthenticationNodeRest" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

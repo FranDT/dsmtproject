@@ -3,3 +3,4 @@
 /AccessNode/target/
 /AuthenticationNodeRest/target/
 /Client/target/
+*.class

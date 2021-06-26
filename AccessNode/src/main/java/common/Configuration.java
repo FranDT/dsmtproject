@@ -4,23 +4,44 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import javax.inject.Singleton;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.concurrent.ThreadLocalRandom;
+import java.net.URISyntaxException;
 
-@Singleton
 public class Configuration {
     private final JSONObject configJson;
     private final JSONObject defaultConfigJson;
+    private static Configuration configuration;
 
-    public Configuration() {
+    private static Configuration getConfiguration() {
+        synchronized (Configuration.class) {
+            if (configuration == null) {
+                configuration = new Configuration();
+            }
+        }
+        return configuration;
+    }
+
+    private Configuration() {
+        System.out.println("Creazione conf");
         JSONObject configJson;
         try {
             JSONParser parser = new JSONParser();
-            configJson = (JSONObject) parser.parse(new FileReader("AccessNode/settings.json"));
-
-        } catch (IOException | ParseException e) {
+            configJson = (JSONObject) parser.parse(
+                    new FileReader(
+                            new File(
+                                    getClass()
+                                    .getClassLoader()
+                                    .getResource
+                                    (
+                                "settings.json"
+                                    )
+                                    .toURI()
+                            )
+                    )
+            );
+        } catch (NullPointerException | IOException | ParseException | URISyntaxException e) {
             e.printStackTrace();
             System.out.println("Using default configuration");
             configJson = new JSONObject();
@@ -31,47 +52,39 @@ public class Configuration {
 
     private JSONObject defaultConfig() {
         JSONObject configJson = new JSONObject();
-        configJson.put("AuthenticationNode", "localhost:8090");
+        configJson.put("AuthenticationNode", "http://localhost:8090");
         configJson.put("Cookie", "");
         configJson.put("ControlNodeServerName", "control_node@localhost");
         configJson.put("ControlNodeServerRegisteredName", "control_server");
-        configJson.put("AccessNodeName", "access_node_"+ ThreadLocalRandom.current().nextLong() +"@localhost");
+        configJson.put("AccessNodeName", "access_node@localhost");
         return configJson;
     }
 
-
-    public String getUrlAuthNode() {
-        return (String) configJson.getOrDefault(
-                "AuthenticationNode",
-                defaultConfigJson.get("AuthenticationNode")
+    private static Object get(String key) {
+        Configuration conf = getConfiguration();
+        return conf.configJson.getOrDefault(
+                key,
+                conf.defaultConfigJson.get(key)
         );
     }
 
-    public String getCookie() {
-        return (String) configJson.getOrDefault(
-                "Cookie",
-                defaultConfigJson.get("Cookie")
-        );
+    public static String getUrlAuthNode() {
+        return (String) get("AuthenticationNode");
     }
 
-    public String getControlNodeServerName() {
-        return (String) configJson.getOrDefault(
-                "ControlNodeServerName",
-                defaultConfigJson.get("ControlNodeServerName")
-        );
+    public static String getCookie() {
+        return (String) get("Cookie");
     }
 
-    public String getControlNodeServerRegisteredName() {
-        return (String) configJson.getOrDefault(
-                "ControlNodeServerRegisteredName",
-                defaultConfigJson.get("ControlNodeServerRegisteredName")
-        );
+    public static String getControlNodeServerName() {
+        return (String) get("ControlNodeServerName");
     }
 
-    public String getAccessNodeName() {
-        return (String) configJson.getOrDefault(
-                "AccessNodeName",
-                defaultConfigJson.get("AccessNodeName")
-        );
+    public static String getControlNodeServerRegisteredName() {
+        return (String) get("ControlNodeServerRegisteredName");
+    }
+
+    public static String getAccessNodeName() {
+        return (String) get("AccessNodeName");
     }
 }

@@ -4,6 +4,7 @@
     <file type="web" url="file://$PROJECT_DIR$/AccessNode" />
     <file type="web" url="file://$PROJECT_DIR$/AuthenticationNodeRest" />
     <file type="web" url="file://$PROJECT_DIR$/AuthenticationNodeRest2" />
+    <file type="web" url="file://$PROJECT_DIR$/ProvaAuthenticationNodeRest" />
   </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">

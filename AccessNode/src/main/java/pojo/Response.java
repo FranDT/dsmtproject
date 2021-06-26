@@ -5,6 +5,8 @@ public class Response {
     private String data;
     private int status;
 
+    public Response() {}
+
     public Response(String data, int status){
         this.data = data;
         this.status = status;

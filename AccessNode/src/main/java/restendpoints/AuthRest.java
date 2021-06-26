@@ -8,7 +8,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 
-@ApplicationPath("rest")
+
 @Path("authentication")
 public class AuthRest extends Application {
 

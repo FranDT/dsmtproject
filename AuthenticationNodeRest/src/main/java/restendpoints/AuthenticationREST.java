@@ -9,7 +9,7 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 
 @ApplicationPath("rest")
-@Path("authentication")
+@Path("/authentication")
 public class AuthenticationREST extends Application {
 
     @GET
