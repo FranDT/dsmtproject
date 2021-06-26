@@ -6,7 +6,6 @@ import org.glassfish.jersey.client.ClientConfig;
 import pojo.Request;
 import pojo.Response;
 
-import javax.inject.Inject;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 

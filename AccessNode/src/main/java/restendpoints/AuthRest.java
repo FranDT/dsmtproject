@@ -17,7 +17,7 @@ public class AuthRest extends Application {
     @Produces({MediaType.APPLICATION_JSON})
     public Response get(@PathParam("key") String key){
         if(!AuthConnector.isLaunched()){
-            return new Response(null, 1);
+            return new Response("Something bad happened", 1);
         }
 
         return AuthConnector.getAuthentication(key);
@@ -28,11 +28,11 @@ public class AuthRest extends Application {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response post(Request request){
         if(request.getKey() == null || request.getKey().isEmpty() || request.getValue() == null || request.getValue().isEmpty()){
-            return new Response(null, 2);
+            return new Response("Wrong format", 2);
         }
 
         if(!AuthConnector.isLaunched()){
-            return new Response(null, 3);
+            return new Response("Something bad happened", 3);
         }
 
         return AuthConnector.postNewUser(request);

@@ -5,7 +5,7 @@ public class LevelDBAuthenticationManager extends LevelDBManager implements Auth
     private static LevelDBAuthenticationManager singletonDB;
     // key structure: user (no attributes are necessary in this case, just the user)
     public static LevelDBAuthenticationManager getDB() {
-        synchronized (singletonDB) {
+        synchronized (LevelDBAuthenticationManager.class) {
             if (singletonDB == null) {
                 singletonDB = new LevelDBAuthenticationManager();
             }
