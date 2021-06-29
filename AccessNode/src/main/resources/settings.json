@@ -3,5 +3,5 @@
 	"Cookie": "",
 	"ControlNodeServerName": "control_node@localhost",
 	"ControlNodeServerRegisteredName": "control_server",
-	"AccessNodeName": "access_node@localhost"
+	"AccessNodeName": "access_node"
 }

@@ -7,7 +7,7 @@ public class AuthenticationManagerImplementation implements AuthenticationManage
 
     private final String WRONG_CREDENTIALS = "Wrong username or password";
     private final String USERNAME_TAKEN = "This username is already taken";
-    private final String USERNAME_INVALID_CHARS = "The username must contain only letters, numbers, or \"_\"";
+    private final String CREDENTIALS_INVALID_CHARS = "The username and password must contain only letters, numbers, or \"_\"";
     private final String CONNECTION_REFUSED = "Cannot connect to the server";
 
     AuthenticationManagerImplementation(){ }
@@ -28,9 +28,9 @@ public class AuthenticationManagerImplementation implements AuthenticationManage
 
     @Override
     public AuthResult register(String username, String psw) {
-        String usernameRegex = "^[a-zA-Z0-9.]{3,}$";
-        if(!username.matches(usernameRegex)){
-            return new AuthResult(null, false, USERNAME_INVALID_CHARS);
+        String regex = "^[a-zA-Z0-9.]{3,}$";
+        if(!username.matches(regex) || !psw.matches(regex)){
+            return new AuthResult(null, false, CREDENTIALS_INVALID_CHARS);
         }
         int result = RestClient.postNewUser(username, securePassword(psw));
         if(result == 1){

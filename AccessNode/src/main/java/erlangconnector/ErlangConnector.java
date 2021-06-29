@@ -5,6 +5,7 @@ import common.Configuration;
 import pojo.Response;
 
 import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ErlangConnector {
@@ -12,14 +13,18 @@ public class ErlangConnector {
     private static final String serverNodeName;
     private static final String serverRegisteredName;
     private static final String clientNodeName;
-    private static final AtomicInteger counter = new AtomicInteger(0); //shared counter
+    private static final AtomicInteger nextRequestId = new AtomicInteger(0); //shared counter
+    private static boolean launched = false;
     private static OtpNode clientNode;  //initialized in constructor
+    private static OtpMbox mbox;
 
     static {
+        long randomNum = ThreadLocalRandom.current().nextLong();
         String cookie = Configuration.getCookie();
         serverNodeName = Configuration.getControlNodeServerName();
         serverRegisteredName = Configuration.getControlNodeServerRegisteredName();
-        clientNodeName = Configuration.getAccessNodeName();
+        clientNodeName = Configuration.getAccessNodeName() + Long.toString(randomNum) + "@localhost";
+        mbox = clientNode.createMbox("mbox_access" + Long.toString(randomNum));
         try {
             if (!cookie.equals("")) {
                 clientNode = new OtpNode(clientNodeName, cookie);
@@ -30,17 +35,12 @@ public class ErlangConnector {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-    }
-
-    private static OtpMbox createMbox(){
-        return clientNode.createMbox("mbox_access_"+ counter.getAndIncrement());
+        launched = true;
     }
 
     public static Response deleteByKey(String key) {
         // { RequestId, PID, {delete, key} }
-        final OtpMbox mbox = createMbox(); //one mailbox per task
-        OtpErlangInt requestId = new OtpErlangInt(counter.getAndIncrement());
+        OtpErlangInt requestId = new OtpErlangInt(nextRequestId.getAndIncrement());
         OtpErlangPid pid = mbox.self();
         OtpErlangAtom operation = new OtpErlangAtom("delete");
         OtpErlangString keyOperation = new OtpErlangString(key);
@@ -70,112 +70,129 @@ public class ErlangConnector {
     }
 
     public static boolean isLaunched() {
-        final OtpMbox mbox = createMbox(); //one mailbox per task
-        OtpErlangString num = new OtpErlangString("Sostituire");
-        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{mbox.self(), num});
-
-        //sending out the request
-        mbox.send(serverRegisteredName, serverNodeName, reqMsg);
-
-        //blocking receive operation
-        OtpErlangObject msg = null;
-        try {
-            msg = mbox.receive();
-        } catch (OtpErlangExit otpErlangExit) {
-            otpErlangExit.printStackTrace();
-        } catch (OtpErlangDecodeException e) {
-            e.printStackTrace();
-        }
-        //getting the message content (a number)
-        OtpErlangDouble curr_avg_erlang = (OtpErlangDouble) msg;  //it is supposed to be a tuple...
-        return true;
+        return launched;
     }
 
     public static Response insert(String key, String value) {
-        final OtpMbox mbox = createMbox(); //one mailbox per task
-        OtpErlangString num = new OtpErlangString("Sostituire");
-        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{mbox.self(), num});
+        OtpErlangInt requestId = new OtpErlangInt(nextRequestId.getAndIncrement());
+        OtpErlangPid pid = mbox.self();
+        OtpErlangAtom operation = new OtpErlangAtom("insert");
+        OtpErlangString keyOperation = new OtpErlangString(key);
+        OtpErlangString valueOperation = new OtpErlangString(value);
+        OtpErlangTuple body = new OtpErlangTuple(new OtpErlangObject[]{operation, keyOperation, valueOperation});
+        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
 
         //sending out the request
+        int status = 1;
         mbox.send(serverRegisteredName, serverNodeName, reqMsg);
-
-        //blocking receive operation
-        OtpErlangObject msg = null;
         try {
-            msg = mbox.receive();
+            OtpErlangObject msg = mbox.receive();
+            OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
+            OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
+            //TODO: This check should return always true. Remove if necessary
+            if (requestIdResponse.equals(requestId)) {
+                OtpErlangInt statusResponse = (OtpErlangInt) msgTuple.elementAt(1);
+                status = statusResponse.intValue();
+            }
         } catch (OtpErlangExit otpErlangExit) {
             otpErlangExit.printStackTrace();
         } catch (OtpErlangDecodeException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        //getting the message content (a number)
-        OtpErlangDouble curr_avg_erlang = (OtpErlangDouble) msg;  //it is supposed to be a tuple...
-        return new Response(null, 0);
+        return new Response(null, status);
     }
 
     public static Response updateFile(String key, String value) {
-        final OtpMbox mbox = createMbox(); //one mailbox per task
-        OtpErlangString num = new OtpErlangString("Sostituire");
-        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{mbox.self(), num});
+        OtpErlangInt requestId = new OtpErlangInt(nextRequestId.getAndIncrement());
+        OtpErlangPid pid = mbox.self();
+        OtpErlangAtom operation = new OtpErlangAtom("update");
+        OtpErlangString keyOperation = new OtpErlangString(key);
+        OtpErlangString valueOperation = new OtpErlangString(value);
+        OtpErlangTuple body = new OtpErlangTuple(new OtpErlangObject[]{operation, keyOperation, valueOperation});
+        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
 
         //sending out the request
+        int status = 1;
         mbox.send(serverRegisteredName, serverNodeName, reqMsg);
-
-        //blocking receive operation
-        OtpErlangObject msg = null;
         try {
-            msg = mbox.receive();
+            OtpErlangObject msg = mbox.receive();
+            OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
+            OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
+            //TODO: This check should return always true. Remove if necessary
+            if (requestIdResponse.equals(requestId)) {
+                OtpErlangInt statusResponse = (OtpErlangInt) msgTuple.elementAt(1);
+                status = statusResponse.intValue();
+            }
         } catch (OtpErlangExit otpErlangExit) {
             otpErlangExit.printStackTrace();
         } catch (OtpErlangDecodeException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        //getting the message content (a number)
-        OtpErlangDouble curr_avg_erlang = (OtpErlangDouble) msg;  //it is supposed to be a tuple...
-        return new Response(null, 0);
+        return new Response(null, status);
     }
 
     public static Response getByKey(String key) {
-        final OtpMbox mbox = createMbox(); //one mailbox per task
-        OtpErlangString num = new OtpErlangString("Sostituire");
-        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{mbox.self(), num});
+        OtpErlangInt requestId = new OtpErlangInt(nextRequestId.getAndIncrement());
+        OtpErlangPid pid = mbox.self();
+        OtpErlangAtom operation = new OtpErlangAtom("insert");
+        OtpErlangString keyOperation = new OtpErlangString(key);
+        OtpErlangTuple body = new OtpErlangTuple(new OtpErlangObject[]{operation, keyOperation});
+        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
 
         //sending out the request
+        String data = null;
         mbox.send(serverRegisteredName, serverNodeName, reqMsg);
-
-        //blocking receive operation
-        OtpErlangObject msg = null;
         try {
-            msg = mbox.receive();
+            OtpErlangObject msg = mbox.receive();
+            OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
+            OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
+            //TODO: This check should return always true. Remove if necessary
+            if (requestIdResponse.equals(requestId)) {
+                OtpErlangString dataResponse = (OtpErlangString) msgTuple.elementAt(1);
+                data = dataResponse.stringValue();
+                return new Response(data, 0);
+            }
         } catch (OtpErlangExit otpErlangExit) {
             otpErlangExit.printStackTrace();
         } catch (OtpErlangDecodeException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        //getting the message content (a number)
-        OtpErlangDouble curr_avg_erlang = (OtpErlangDouble) msg;  //it is supposed to be a tuple...
-        return new Response(null, 0);
+        return new Response(null, 1);
     }
 
     public static Response getFileList() {
-        final OtpMbox mbox = createMbox(); //one mailbox per task
-        OtpErlangString num = new OtpErlangString("Sostituire");
-        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{mbox.self(), num});
+        OtpErlangInt requestId = new OtpErlangInt(nextRequestId.getAndIncrement());
+        OtpErlangPid pid = mbox.self();
+        OtpErlangAtom operation = new OtpErlangAtom("getFileList");
+        OtpErlangTuple body = new OtpErlangTuple(new OtpErlangObject[]{operation});
+        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
 
         //sending out the request
+        String data = null;
         mbox.send(serverRegisteredName, serverNodeName, reqMsg);
-
-        //blocking receive operation
-        OtpErlangObject msg = null;
         try {
-            msg = mbox.receive();
+            OtpErlangObject msg = mbox.receive();
+            OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
+            OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
+            //TODO: This check should return always true. Remove if necessary
+            if (requestIdResponse.equals(requestId)) {
+                OtpErlangString dataResponse = (OtpErlangString) msgTuple.elementAt(1);
+                data = dataResponse.stringValue();
+                return new Response(data, 0);
+            }
         } catch (OtpErlangExit otpErlangExit) {
             otpErlangExit.printStackTrace();
         } catch (OtpErlangDecodeException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        //getting the message content (a number)
-        OtpErlangDouble curr_avg_erlang = (OtpErlangDouble) msg;  //it is supposed to be a tuple...
-        return new Response(null, 0);
+        return new Response(null, 1);
     }
 }

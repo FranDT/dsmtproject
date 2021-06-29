@@ -81,8 +81,10 @@ public class HomepageController implements UIController {
             System.out.println("A problem occured while trying to upload the file");
         else if(res == 3)
             return;
-        else
-            System.out.println("File downloaded correctly!");
+        else {
+            System.out.println("File uploaded correctly!");
+            refreshList();
+        }
     }
 
     public void updateSelected(){
@@ -92,8 +94,10 @@ public class HomepageController implements UIController {
         }
         if(manager.updateFile(highlightedUsername, highlightedFilename) == 1)
             System.out.println("Error: cannot connect to the server");
-        else
-            System.out.println("File downloaded correctly!");
+        else {
+            System.out.println("File updated correctly!");
+            refreshList();
+        }
     }
 
     public void removeSelected(){
@@ -103,8 +107,10 @@ public class HomepageController implements UIController {
         }
         if(manager.removeSelected(highlightedUsername, highlightedFilename) == 1)
             System.out.println("Error: cannot connect to the server");
-        else
+        else {
             System.out.println("File removed correctly!");
+            refreshList();
+        }
     }
 
     public void refreshList(){
