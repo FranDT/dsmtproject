@@ -70,24 +70,6 @@ public class ErlangConnector {
     }
 
     public static boolean isLaunched() {
-        final OtpMbox mbox = createMbox(); //one mailbox per task
-        OtpErlangString num = new OtpErlangString("Sostituire");
-        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{mbox.self(), num});
-
-        //sending out the request
-        mbox.send(serverRegisteredName, serverNodeName, reqMsg);
-
-        //blocking receive operation
-        OtpErlangObject msg = null;
-        try {
-            msg = mbox.receive();
-        } catch (OtpErlangExit otpErlangExit) {
-            otpErlangExit.printStackTrace();
-        } catch (OtpErlangDecodeException e) {
-            e.printStackTrace();
-        }
-        //getting the message content (a number)
-        OtpErlangDouble curr_avg_erlang = (OtpErlangDouble) msg;  //it is supposed to be a tuple...
         return true;
     }
 
