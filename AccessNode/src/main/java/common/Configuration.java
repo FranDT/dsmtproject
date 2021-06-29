@@ -12,12 +12,14 @@ import java.net.URISyntaxException;
 public class Configuration {
     private final JSONObject configJson;
     private final JSONObject defaultConfigJson;
-    private static Configuration configuration;
+    private static volatile Configuration configuration;
 
     private static Configuration getConfiguration() {
-        synchronized (Configuration.class) {
-            if (configuration == null) {
-                configuration = new Configuration();
+        if (configuration == null) {
+            synchronized (Configuration.class) {
+                if (configuration == null) {
+                    configuration = new Configuration();
+                }
             }
         }
         return configuration;
@@ -56,6 +58,7 @@ public class Configuration {
         configJson.put("Cookie", "");
         configJson.put("ControlNodeServerName", "control_node@localhost");
         configJson.put("ControlNodeServerRegisteredName", "control_server");
+        // TODO: Probabilmente bisognera' cambiare il nome del nodo access, cosi' da avere univocita'
         configJson.put("AccessNodeName", "access_node@localhost");
         return configJson;
     }

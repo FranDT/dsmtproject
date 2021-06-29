@@ -2,12 +2,14 @@ package leveldb;
 
 public class LevelDBAuthenticationManager extends LevelDBManager implements AuthenticationManagerInterface {
 
-    private static LevelDBAuthenticationManager singletonDB;
+    private static volatile LevelDBAuthenticationManager singletonDB;
     // key structure: user (no attributes are necessary in this case, just the user)
     public static LevelDBAuthenticationManager getDB() {
-        synchronized (LevelDBAuthenticationManager.class) {
-            if (singletonDB == null) {
-                singletonDB = new LevelDBAuthenticationManager();
+        if (singletonDB == null) {
+            synchronized (LevelDBAuthenticationManager.class) {
+                if (singletonDB == null) {
+                    singletonDB = new LevelDBAuthenticationManager();
+                }
             }
         }
         return singletonDB;

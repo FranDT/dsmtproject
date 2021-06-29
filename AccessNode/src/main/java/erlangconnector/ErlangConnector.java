@@ -4,7 +4,6 @@ import com.ericsson.otp.erlang.*;
 import common.Configuration;
 import pojo.Response;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,25 +38,36 @@ public class ErlangConnector {
     }
 
     public static Response deleteByKey(String key) {
+        // { RequestId, PID, {delete, key} }
         final OtpMbox mbox = createMbox(); //one mailbox per task
-        OtpErlangString num = new OtpErlangString("Sostituire");
-        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{mbox.self(), num});
+        OtpErlangInt requestId = new OtpErlangInt(counter.getAndIncrement());
+        OtpErlangPid pid = mbox.self();
+        OtpErlangAtom operation = new OtpErlangAtom("delete");
+        OtpErlangString keyOperation = new OtpErlangString(key);
+        OtpErlangTuple body = new OtpErlangTuple(new OtpErlangObject[]{operation, keyOperation});
+        OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
 
         //sending out the request
+        int status = 1;
         mbox.send(serverRegisteredName, serverNodeName, reqMsg);
-
-        //blocking receive operation
-        OtpErlangObject msg = null;
         try {
-            msg = mbox.receive();
+            OtpErlangObject msg = mbox.receive();
+            OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
+            OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
+            //TODO: This check should return always true. Remove if necessary
+            if (requestIdResponse.equals(requestId)) {
+                OtpErlangInt statusResponse = (OtpErlangInt) msgTuple.elementAt(1);
+                status = statusResponse.intValue();
+            }
         } catch (OtpErlangExit otpErlangExit) {
             otpErlangExit.printStackTrace();
         } catch (OtpErlangDecodeException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        //getting the message content (a number)
-        OtpErlangDouble curr_avg_erlang = (OtpErlangDouble) msg;  //it is supposed to be a tuple...
-        return new Response(null, 0);    }
+        return new Response(null, status);
+    }
 
     public static boolean isLaunched() {
         final OtpMbox mbox = createMbox(); //one mailbox per task

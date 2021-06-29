@@ -21,9 +21,9 @@ public class AuthController {
     }
 
     public static Response checkCredentials(String key){
-        String[] parts = key.split(":");
+        String[] parts = key.split("-");
         if (parts.length != 2) {
-            return new Response("Key received is not username:password", 2);
+            return new Response("Key received is not username-password", 2);
         }
         String username = parts[0];
         String password = parts[1];
