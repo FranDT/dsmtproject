@@ -46,7 +46,7 @@ public class RestClient extends Application {
     }
 
     public static int getAuthentication(String username, String password){
-        webTarget = client.target(urlBase).path("authentication").path(username + ":" + password);
+        webTarget = client.target(urlBase).path("authentication").path(username + "-" + password);
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
         Response response = invocationBuilder.get();

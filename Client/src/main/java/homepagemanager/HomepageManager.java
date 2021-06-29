@@ -23,7 +23,7 @@ public class HomepageManager {
 
         String[] temp = list.split(";");
         for(String s : temp){
-            String[] app = s.split(":");
+            String[] app = s.split("-");
             map.put(app[0],app[1]);
         }
 
@@ -31,7 +31,7 @@ public class HomepageManager {
     }
 
     public int getByKey(String username, String fileName){
-        String result = RestClient.getByKey(username + ":" + fileName);
+        String result = RestClient.getByKey(username + "-" + fileName);
         if(result.equals("Cannot connect to the server"))
             return 1;
         else {
@@ -47,7 +47,7 @@ public class HomepageManager {
     }
 
     public int removeSelected(String username, String fileName){
-        return RestClient.delete(username + ":" + fileName);
+        return RestClient.delete(username + "-" + fileName);
     }
 
     public int uploadFile(String username, String fileName){
@@ -56,7 +56,7 @@ public class HomepageManager {
             return 3;
         else if(fileValue.equals("An error occurred while reading the file, please try again"))
             return 2;
-        return RestClient.post(username + ":" + fileName, fileValue);
+        return RestClient.post(username + "-" + fileName, fileValue);
     }
 
     public int updateFile(String username, String fileName){
@@ -65,7 +65,7 @@ public class HomepageManager {
             return 3;
         else if(fileValue.equals("An error occurred while reading the file, please try again"))
             return 2;
-        return RestClient.put(username + ":" + fileName, fileValue);
+        return RestClient.put(username + "-" + fileName, fileValue);
     }
 
     private String getFileContent(){

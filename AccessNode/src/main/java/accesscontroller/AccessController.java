@@ -10,7 +10,7 @@ public class AccessController {
     private static List<String> loggedUsersList = new ArrayList<>();
 
     public static void addActiveUser(String key){
-        String[] div = key.split(":");
+        String[] div = key.split("-");
         loggedUsersList.add(div[0]);
     }
 
