@@ -1,5 +1,5 @@
 {
-	"AuthenticationNode": "http://localhost:8080/AuthenticationNodeRest-1.0.0/",
+	"AuthenticationNode": "http://localhost:8080/AuthenticationNode/",
 	"Cookie": "",
 	"ControlNodeServerName": "control_node@localhost",
 	"ControlNodeServerRegisteredName": "control_server",

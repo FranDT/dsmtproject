@@ -1,10 +1,16 @@
 package restclient;
 
 public class MyResponse {
+
     private String data;
     private int status;
 
     public MyResponse(){}
+
+    public MyResponse(String data, int status){
+        this.data = data;
+        this.status = status;
+    }
 
     public String getData() {return data;}
     public int getStatus() {return status;}

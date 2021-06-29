@@ -1,13 +1,11 @@
 package restclient;
 
-import java.io.Serializable;
-
-public class MyRequest implements Serializable {
+public class MyRequest {
 
     private String key;
     private String value;
 
-    public MyRequest(){};
+    public MyRequest(){}
 
     public MyRequest(String key, String value){
         this.key = key;

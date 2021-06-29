@@ -9,8 +9,6 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import java.util.List;
-
 public class RestClient extends Application {
 
     private static String urlBase;
@@ -32,7 +30,7 @@ public class RestClient extends Application {
         if(!launched)
             return;
 
-        webTarget = client.target(urlBase).path("control").path(manager.context.getAuthenticatedUser());
+        webTarget = client.target(urlBase).path("rest").path("control").path(manager.context.getAuthenticatedUser());
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
         Response response = invocationBuilder.delete();
@@ -46,7 +44,7 @@ public class RestClient extends Application {
     }
 
     public static int getAuthentication(String username, String password){
-        webTarget = client.target(urlBase).path("authentication").path(username + "-" + password);
+        webTarget = client.target(urlBase).path("rest").path("authentication").path(username + "-" + password);
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
         Response response = invocationBuilder.get();
@@ -56,7 +54,7 @@ public class RestClient extends Application {
     }
 
     public static int postNewUser(String username, String password){
-        webTarget = client.target(urlBase).path("authentication");
+        webTarget = client.target(urlBase).path("rest").path("authentication");
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
         MyRequest myRequest = new MyRequest(username, password);
 
@@ -67,7 +65,7 @@ public class RestClient extends Application {
     }
 
     public static String getByKey(String key){
-        webTarget = client.target(urlBase).path("data").path(key);
+        webTarget = client.target(urlBase).path("rest").path("data").path(key);
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
         Response response = invocationBuilder.get();
@@ -81,7 +79,7 @@ public class RestClient extends Application {
     }
 
     public static int put(String key, String value){
-        webTarget = client.target(urlBase).path("data");
+        webTarget = client.target(urlBase).path("rest").path("data");
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
         MyRequest myRequest = new MyRequest(key, value);
 
@@ -92,7 +90,7 @@ public class RestClient extends Application {
     }
 
     public static int post(String key, String value){
-        webTarget = client.target(urlBase).path("data");
+        webTarget = client.target(urlBase).path("rest").path("data");
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
         MyRequest myRequest = new MyRequest(key, value);
 
@@ -103,7 +101,7 @@ public class RestClient extends Application {
     }
 
     public static int delete(String key){
-        webTarget = client.target(urlBase).path("data").path(key);
+        webTarget = client.target(urlBase).path("rest").path("data").path(key);
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
         Response response = invocationBuilder.delete();
@@ -113,7 +111,7 @@ public class RestClient extends Application {
     }
 
     public static String getList(){
-        webTarget = client.target(urlBase).path("control");
+        webTarget = client.target(urlBase).path("rest").path("control");
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
         Response response = invocationBuilder.get();
@@ -127,7 +125,7 @@ public class RestClient extends Application {
     }
 
     public static int deleteConnection(String key){
-        webTarget = client.target(urlBase).path("control").path(key);
+        webTarget = client.target(urlBase).path("rest").path("control").path(key);
         Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_JSON);
 
         Response response = invocationBuilder.delete();

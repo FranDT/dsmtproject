@@ -1,5 +1,5 @@
 {
-	"AccessNode0": "zero",
-	"AccessNode1": "uno",
-	"AccessNode2": "due"
+	"AccessNode0": "http://localhost:8080/AccessNode0/",
+	"AccessNode1": "http://localhost:8080/AccessNode1/",
+	"AccessNode2": "http://localhost:8080/AccessNode2/"
 }

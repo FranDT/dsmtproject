@@ -34,7 +34,21 @@ public class AuthenticationController implements UIController {
     @FXML
     public void login(ActionEvent event) {
         if(authManager != null && manager != null){
-            AuthResult result = authManager.login(usernameField.getText(), passwordField.getText());
+            String username = usernameField.getText();
+            String password = passwordField.getText();
+            if (username.isEmpty()) {
+                resultField.setText("Username not set");
+                return;
+            }
+            if (password.isEmpty()) {
+                resultField.setText("Password not set");
+                return;
+            }
+            if (username.contains("-") || password.contains("-")) {
+                resultField.setText("'-' is not permitted");
+                return;
+            }
+            AuthResult result = authManager.login(username, password);
             if(result.success){
                 manager.context.setAuthenticatedUser(result.authenticated);
                 resultField.setText("Login");
@@ -48,7 +62,21 @@ public class AuthenticationController implements UIController {
     @FXML
     public void register(ActionEvent event){
         if(authManager != null && manager != null){
-            AuthResult result = authManager.register(usernameField.getText(), passwordField.getText());
+            String username = usernameField.getText();
+            String password = passwordField.getText();
+            if (username.isEmpty()) {
+                resultField.setText("Username not set");
+                return;
+            }
+            if (password.isEmpty()) {
+                resultField.setText("Password not set");
+                return;
+            }
+            if (username.contains("-") || password.contains("-")) {
+                resultField.setText("'-' is not permitted");
+                return;
+            }
+            AuthResult result = authManager.register(username, password);
             if(result.success){
                 manager.context.setAuthenticatedUser(result.authenticated);
                 resultField.setText("Login");

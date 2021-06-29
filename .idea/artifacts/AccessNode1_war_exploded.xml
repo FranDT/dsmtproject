@@ -1,13 +1,6 @@
 <component name="ArtifactManager">
-  <artifact type="exploded-war" name="AccessNode:war exploded">
-    <output-path>$PROJECT_DIR$/AccessNode/target/AccessNode-1.0-SNAPSHOT</output-path>
-    <properties id="maven-jee-properties">
-      <options>
-        <exploded>true</exploded>
-        <module>AccessNode</module>
-        <packaging>war</packaging>
-      </options>
-    </properties>
+  <artifact type="exploded-war" name="AccessNode1:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/AccessNode1_war_exploded</output-path>
     <root id="root">
       <element id="directory" name="WEB-INF">
         <element id="directory" name="classes">
