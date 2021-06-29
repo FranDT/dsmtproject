@@ -34,6 +34,9 @@ public class HomepageManager {
         String result = RestClient.getByKey(username + "-" + fileName);
         if(result.equals("Cannot connect to the server"))
             return 1;
+        else if(result.equals("Not found")){
+            return 2;
+        }
         else {
             try{
                 byte[] bytes = Base64.getDecoder().decode(result.getBytes());

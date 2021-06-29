@@ -22,7 +22,7 @@ public class DataRest extends Application {
         if (AccessController.isPresent(key)) {
             return ErlangConnector.getByKey(key);
         }
-        return new Response(null, 2);
+        return new Response(null, 1);
     }
 
     @PUT
@@ -40,7 +40,7 @@ public class DataRest extends Application {
         if (AccessController.isPresent(key)) {
             return ErlangConnector.updateFile(key, value);
         }
-        return new Response(null, 2);
+        return new Response(null, 1);
     }
 
     @POST
@@ -59,7 +59,7 @@ public class DataRest extends Application {
         if (AccessController.isPresent(key)) {
             return ErlangConnector.insert(key, value);
         }
-        return new Response(null, 2);
+        return new Response(null, 1);
 
     }
 
@@ -75,6 +75,6 @@ public class DataRest extends Application {
             return ErlangConnector.deleteByKey(key);
         }
 
-        return new Response(null, 2);
+        return new Response(null, 1);
     }
 }

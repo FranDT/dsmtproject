@@ -11,7 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Main extends Application {
+public class Main extends Application{
 
     @Override
     public void start(Stage primaryStage) {

@@ -5,7 +5,11 @@ import common.Configuration;
 import pojo.Response;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Exchanger;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ErlangConnector {
@@ -15,8 +19,10 @@ public class ErlangConnector {
     private static final String clientNodeName;
     private static final AtomicInteger nextRequestId = new AtomicInteger(0); //shared counter
     private static boolean launched = false;
+    private static ConcurrentHashMap<Integer, Exchanger<OtpErlangObject>> requests = new ConcurrentHashMap<>();
     private static OtpNode clientNode;  //initialized in constructor
     private static OtpMbox mbox;
+    private static Thread dispatchingThread;
 
     static {
         long randomNum = ThreadLocalRandom.current().nextLong();
@@ -35,7 +41,32 @@ public class ErlangConnector {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        launchDispatchingThread();
         launched = true;
+    }
+
+    private static void launchDispatchingThread(){
+        dispatchingThread = new Thread( () -> {
+           while(!Thread.interrupted()){
+               try{
+                   OtpErlangObject msg = mbox.receive();
+                   OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
+                   OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
+                   Exchanger<OtpErlangObject> exchanger = requests.get(requestIdResponse);
+                   if(exchanger != null){
+                       exchanger.exchange(msgTuple.elementAt(1), 0, TimeUnit.MILLISECONDS);
+                   }
+               }
+               catch (OtpErlangExit otpErlangExit) {
+                   otpErlangExit.printStackTrace();
+               } catch (OtpErlangDecodeException e) {
+                   e.printStackTrace();
+               } catch (Exception e) {
+                   e.printStackTrace();
+            }
+           }
+        });
+        dispatchingThread.start();
     }
 
     public static Response deleteByKey(String key) {
@@ -48,25 +79,22 @@ public class ErlangConnector {
         OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
 
         //sending out the request
-        int status = 1;
-        mbox.send(serverRegisteredName, serverNodeName, reqMsg);
+        OtpErlangObject reply = null;
+
         try {
-            OtpErlangObject msg = mbox.receive();
-            OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
-            OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
-            //TODO: This check should return always true. Remove if necessary
-            if (requestIdResponse.equals(requestId)) {
-                OtpErlangInt statusResponse = (OtpErlangInt) msgTuple.elementAt(1);
-                status = statusResponse.intValue();
+            Exchanger<OtpErlangObject> exchanger = new Exchanger<>();
+            requests.put(requestId.intValue(), exchanger);
+            mbox.send(serverRegisteredName, serverNodeName, reqMsg);
+
+            reply = exchanger.exchange(reply, 5000, TimeUnit.MILLISECONDS);
+            requests.remove(requestId);
+            if(reply instanceof OtpErlangInt){
+                return new Response(null, ((OtpErlangInt) reply).intValue());
             }
-        } catch (OtpErlangExit otpErlangExit) {
-            otpErlangExit.printStackTrace();
-        } catch (OtpErlangDecodeException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new Response(null, status);
+        return new Response(null, 1);
     }
 
     public static boolean isLaunched() {
@@ -83,25 +111,22 @@ public class ErlangConnector {
         OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
 
         //sending out the request
-        int status = 1;
-        mbox.send(serverRegisteredName, serverNodeName, reqMsg);
+        OtpErlangObject reply = null;
+
         try {
-            OtpErlangObject msg = mbox.receive();
-            OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
-            OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
-            //TODO: This check should return always true. Remove if necessary
-            if (requestIdResponse.equals(requestId)) {
-                OtpErlangInt statusResponse = (OtpErlangInt) msgTuple.elementAt(1);
-                status = statusResponse.intValue();
+            Exchanger<OtpErlangObject> exchanger = new Exchanger<>();
+            requests.put(requestId.intValue(), exchanger);
+            mbox.send(serverRegisteredName, serverNodeName, reqMsg);
+
+            reply = exchanger.exchange(reply, 12000, TimeUnit.MILLISECONDS);
+            requests.remove(requestId);
+            if(reply instanceof OtpErlangInt){
+                return new Response(null, ((OtpErlangInt) reply).intValue());
             }
-        } catch (OtpErlangExit otpErlangExit) {
-            otpErlangExit.printStackTrace();
-        } catch (OtpErlangDecodeException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new Response(null, status);
+        return new Response(null, 1);
     }
 
     public static Response updateFile(String key, String value) {
@@ -114,25 +139,22 @@ public class ErlangConnector {
         OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
 
         //sending out the request
-        int status = 1;
-        mbox.send(serverRegisteredName, serverNodeName, reqMsg);
+        OtpErlangObject reply = null;
+
         try {
-            OtpErlangObject msg = mbox.receive();
-            OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
-            OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
-            //TODO: This check should return always true. Remove if necessary
-            if (requestIdResponse.equals(requestId)) {
-                OtpErlangInt statusResponse = (OtpErlangInt) msgTuple.elementAt(1);
-                status = statusResponse.intValue();
+            Exchanger<OtpErlangObject> exchanger = new Exchanger<>();
+            requests.put(requestId.intValue(), exchanger);
+            mbox.send(serverRegisteredName, serverNodeName, reqMsg);
+
+            reply = exchanger.exchange(reply, 12000, TimeUnit.MILLISECONDS);
+            requests.remove(requestId);
+            if(reply instanceof OtpErlangInt){
+                return new Response(null, ((OtpErlangInt) reply).intValue());
             }
-        } catch (OtpErlangExit otpErlangExit) {
-            otpErlangExit.printStackTrace();
-        } catch (OtpErlangDecodeException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return new Response(null, status);
+        return new Response(null, 1);
     }
 
     public static Response getByKey(String key) {
@@ -144,22 +166,18 @@ public class ErlangConnector {
         OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
 
         //sending out the request
-        String data = null;
-        mbox.send(serverRegisteredName, serverNodeName, reqMsg);
+        OtpErlangObject reply = null;
+
         try {
-            OtpErlangObject msg = mbox.receive();
-            OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
-            OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
-            //TODO: This check should return always true. Remove if necessary
-            if (requestIdResponse.equals(requestId)) {
-                OtpErlangString dataResponse = (OtpErlangString) msgTuple.elementAt(1);
-                data = dataResponse.stringValue();
-                return new Response(data, 0);
+            Exchanger<OtpErlangObject> exchanger = new Exchanger<>();
+            requests.put(requestId.intValue(), exchanger);
+            mbox.send(serverRegisteredName, serverNodeName, reqMsg);
+
+            reply = exchanger.exchange(reply, 10000, TimeUnit.MILLISECONDS);
+            requests.remove(requestId);
+            if(reply instanceof OtpErlangString){
+                return new Response(reply.toString(), 0);
             }
-        } catch (OtpErlangExit otpErlangExit) {
-            otpErlangExit.printStackTrace();
-        } catch (OtpErlangDecodeException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -174,22 +192,23 @@ public class ErlangConnector {
         OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
 
         //sending out the request
-        String data = null;
-        mbox.send(serverRegisteredName, serverNodeName, reqMsg);
+        OtpErlangObject reply = null;
+
         try {
-            OtpErlangObject msg = mbox.receive();
-            OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
-            OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
-            //TODO: This check should return always true. Remove if necessary
-            if (requestIdResponse.equals(requestId)) {
-                OtpErlangString dataResponse = (OtpErlangString) msgTuple.elementAt(1);
-                data = dataResponse.stringValue();
-                return new Response(data, 0);
+            Exchanger<OtpErlangObject> exchanger = new Exchanger<>();
+            requests.put(requestId.intValue(), exchanger);
+            mbox.send(serverRegisteredName, serverNodeName, reqMsg);
+
+            reply = exchanger.exchange(reply, 10000, TimeUnit.MILLISECONDS);
+            requests.remove(requestId);
+            if(reply instanceof OtpErlangList){
+                String res = "";
+                Iterator iter = ((OtpErlangList) reply).iterator();
+                while(iter.hasNext()){
+                    res += iter.next() + ";";
+                }
+                return new Response(res, 0);
             }
-        } catch (OtpErlangExit otpErlangExit) {
-            otpErlangExit.printStackTrace();
-        } catch (OtpErlangDecodeException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }

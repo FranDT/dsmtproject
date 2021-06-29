@@ -1,19 +1,19 @@
 -module(controlnode).
--export([start/0, loop/1]).
+-export([start/0, loop/2]).
 
 start() ->
 	io:format("Central Node pid is: ~p~n", [self()]),
 	register(control_node, self()),
-	loop(dict:new()).
+	loop([], []).
 
-loop(Servers) ->
+loop(Servers, List) ->
 	receive
 		% Data Node operations
 		{DataNode, {join}} ->
 			io:format("Central Node: Received join request from ~w~n", [DataNode]),
 			{NewServersAfterJoin, Successor, NewNodeId} = join(DataNode, Servers),
 			NewServers = manage_join(NewServersAfterJoin, Successor, {NewNodeId, DataNode}),
-			loop(NewServers);
+			loop(NewServers, List);
 		{DataNode, {leave}} ->
 			io:format("Central Node: Received leave request from ~w~n", [DataNode]),
 			{SuccessorPid, PredecessorPid} = find_neighbors(Servers, DataNode),
@@ -21,21 +21,26 @@ loop(Servers) ->
 			% wait for leaving confirmation
 			NewServers = wait_leave_completed(DataNode, Servers),
 			PredecessorPid ! {successor, SuccessorPid},
-			loop(NewServers);
+			loop(NewServers, List);
 
 		% Requests from Access Node
 		{ReqId, AccessNode, {insert, Key, Value}} ->
 			insert_key(ReqId, AccessNode, Key, Value, Servers),
-			loop(Servers);
+			NewList = insert_list(List, Key),
+			loop(Servers, NewList);
 		{ReqId, AccessNode, {get, Key}} ->
 			get_key(ReqId, AccessNode, Key, Servers),
-			loop(Servers);
+			loop(Servers, List);
 		{ReqId, AccessNode, {update, Key, Value}} ->
 			update_key(ReqId, AccessNode, Key, Value, Servers),
-			loop(Servers);
+			loop(Servers, List);
 		{ReqId, AccessNode, {delete, Key}} ->
 			delete_key(ReqId, AccessNode, Key, Servers),
-			loop(Servers);
+			NewList = remove_list(List, Key),
+			loop(Servers, NewList);
+		{ReqId, AccessNode, {getFileList}} ->
+			AccessNode ! {ReqId, List},
+			loop(Servers, List);
 
 		{terminate} ->
 			io:format("Central Node: shutting down the system~n"),
@@ -44,7 +49,7 @@ loop(Servers) ->
 			{ok, terminated};
 		WrongMessage ->
 			io:format("Central Node: wrong message ~p~n", [WrongMessage]),
-			loop(Servers)
+			loop(Servers, List)
 	end.
 
 join(DataNode, Servers) ->
@@ -81,12 +86,12 @@ create_node_id(Servers) ->
 find_neighbors([H|T], NewNodeId) ->
 	find_neighbors([H|T], NewNodeId, H, H).
 
-find_neighbors([], _, {_, NodePid}, Preavious) -> 
-	{NodePid, Preavious}; % for sure is minimum, nobody has key higher than me
-find_neighbors([{NodeId, DataNode} | T], NewNodeId, MinNode, Preavious) ->
+find_neighbors([], _, {_, NodePid}, Previous) ->
+	{NodePid, Previous}; % for sure is minimum, nobody has key higher than me
+find_neighbors([{NodeId, DataNode} | T], NewNodeId, MinNode, Previous) ->
 	if
 		NodeId > NewNodeId -> 
-			{DataNode, Preavious};
+			{DataNode, Previous};
 		true -> 
 			find_neighbors(T, NewNodeId, MinNode, NodeId)
 	end.
@@ -144,4 +149,11 @@ delete_key(ReqId, AccessNode, Key, Servers) ->
 	{SuccessorPid, PredecessorPid} = find_neighbors(Servers, HashedKey),
 	SuccessorPid ! {ReqId, AccessNode, {delete, HashedKey}}.
 
+insert_list(List, Value) ->
+	NewList = [Value|List],
+	NewList.
+
+remove_list(List, Value) ->
+	NewList = [Y || Y <- List, Y =/= Value],
+	NewList.
 % --------------------------------------------------------------------------------------------------

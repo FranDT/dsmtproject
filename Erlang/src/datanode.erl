@@ -140,12 +140,12 @@ insert_key_value(ReqId, AccessNode, Dict, Key, Value) ->
 	if
 		% I found an already existing value for that key
 		Founded =/= error ->
-			AccessNode ! {ReqId, "already existing"},
+			AccessNode ! {ReqId, 4},
 			Dict;
 		% Not found, I can insert now the key-value pair
 		true ->
 			NewDict = dict:store(Key, Value, Dict),
-			AccessNode ! {ReqId, "ok"},
+			AccessNode ! {ReqId, 0},
 			%central_node ! {insert, Key, ok},
 			NewDict
 	end.
@@ -154,7 +154,7 @@ get_value_from_key(ReqId, AccessNode, Dict, Key) ->
 	Founded = dict:find(Key, Dict),
 	if
 		Founded == error ->
-			AccessNode ! {ReqId, "not found"};
+			AccessNode ! {ReqId, "Not found"};
 			%central_node ! {get, Key, notfound};
 		true ->
 			{_, Value} = Founded,
@@ -166,11 +166,11 @@ update_key_value(ReqId, AccessNode, Dict, Key, Value) ->
 	Founded = dict:find(Key, Dict),
 	if
 		Founded == error ->
-			AccessNode ! {ReqId, "not found"};
+			AccessNode ! {ReqId, 4};
 			%central_node ! {get, Key, notfound};
 		true ->
 			NewDict = dict:update(Key, Value, Dict), % il secondo arg dovrebbe essere una fun
-			AccessNode ! {ReqId, "ok"},
+			AccessNode ! {ReqId, 0},
 			%central_node ! {get, Key, Value}
 			NewDict
 	end.
@@ -179,12 +179,12 @@ delete_value_from_key(ReqId, AccessNode, Dict, Key) ->
 	Founded = dict:find(Key, Dict),
 	if
 		Founded == error ->
-			AccessNode ! {ReqId, "not found"},
+			AccessNode ! {ReqId, 2},
 			%central_node ! {delete, Key, error},
 			Dict;
 		true ->
 			NewDict = dict:erase(Key, Dict),
-			AccessNode ! {ReqId, "ok"},
+			AccessNode ! {ReqId, 0},
 			%central_node ! {delete, Key, ok},
 			NewDict
 	end.
