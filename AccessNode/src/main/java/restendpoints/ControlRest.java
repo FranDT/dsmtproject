@@ -14,8 +14,11 @@ public class ControlRest extends Application {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public Response get(){
-        if(!ErlangConnector.isLaunched())
+        if(!ErlangConnector.isLaunched()) {
             return new Response(null, 1);
+        }
+
+        // TODO: Conviene aggiungere anche lo username da controllare qui?
 
         return ErlangConnector.getFileList();
     }
@@ -24,6 +27,9 @@ public class ControlRest extends Application {
     @Path("/{key}")
     @Produces({MediaType.APPLICATION_JSON})
     public Response delete(@PathParam("key") String key){
-        return AccessController.delete(key);
+        if (AccessController.isPresent(key)) {
+            return AccessController.delete(key);
+        }
+        return new Response(null, 2);
     }
 }

@@ -1,5 +1,6 @@
 package restendpoints;
 
+import accesscontroller.AccessController;
 import erlangconnector.ErlangConnector;
 import pojo.Request;
 import pojo.Response;
@@ -18,8 +19,10 @@ public class DataRest extends Application {
         if(!ErlangConnector.isLaunched()){
             return new Response(null, 1);
         }
-
-        return ErlangConnector.getByKey(key);
+        if (AccessController.isPresent(key)) {
+            return ErlangConnector.getByKey(key);
+        }
+        return new Response(null, 2);
     }
 
     @PUT
@@ -34,8 +37,10 @@ public class DataRest extends Application {
         if(!ErlangConnector.isLaunched()){
             return new Response(null, 3);
         }
-
-        return ErlangConnector.updateFile(key, value);
+        if (AccessController.isPresent(key)) {
+            return ErlangConnector.updateFile(key, value);
+        }
+        return new Response(null, 2);
     }
 
     @POST
@@ -51,7 +56,11 @@ public class DataRest extends Application {
             return new Response(null, 3);
         }
 
-        return ErlangConnector.insert(key, value);
+        if (AccessController.isPresent(key)) {
+            return ErlangConnector.insert(key, value);
+        }
+        return new Response(null, 2);
+
     }
 
     @DELETE
@@ -62,6 +71,10 @@ public class DataRest extends Application {
             return new Response(null, 1);
         }
 
-        return ErlangConnector.deleteByKey(key);
+        if (AccessController.isPresent(key)) {
+            return ErlangConnector.deleteByKey(key);
+        }
+
+        return new Response(null, 2);
     }
 }

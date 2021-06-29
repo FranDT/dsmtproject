@@ -3,9 +3,10 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/AccessNode/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/AccessNode/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/AuthenticationNode/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/AuthenticationNodeRest/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Client/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Client/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>
 </project>
