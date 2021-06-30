@@ -30,7 +30,6 @@ public class ErlangConnector {
         serverNodeName = Configuration.getControlNodeServerName();
         serverRegisteredName = Configuration.getControlNodeServerRegisteredName();
         clientNodeName = Configuration.getAccessNodeName() + Long.toString(randomNum) + "@localhost";
-        mbox = clientNode.createMbox("mbox_access" + Long.toString(randomNum));
         try {
             if (!cookie.equals("")) {
                 clientNode = new OtpNode(clientNodeName, cookie);
@@ -38,6 +37,7 @@ public class ErlangConnector {
             else {
                 clientNode = new OtpNode(clientNodeName);
             }
+            mbox = clientNode.createMbox("mbox_access" + Long.toString(randomNum));
         } catch (IOException e) {
             e.printStackTrace();
         }
