@@ -63,7 +63,7 @@ join(DataNode, Servers) ->
 			{NewServers, first, NewNodeId};
 		length(NewServers) =/= 1 ->
 			{SuccessorPid, PredecessorPid} = find_neighbors(Servers, NewNodeId),
-			DataNode ! {granted, NewNodeId, SuccessorPid}, 
+			DataNode ! {granted, NewNodeId, SuccessorPid},
 			PredecessorPid ! {successor, NewNodeId}, % send to a node his new successor
 			{NewServers, SuccessorPid, NewNodeId}
 	end.
@@ -84,7 +84,8 @@ create_node_id(Servers) ->
 
 % find_successor is used both for servers and keys, because they share the same key-space
 find_neighbors([H|T], NewNodeId) ->
-	find_neighbors([H|T], NewNodeId, H, H).
+	{NodeId, _} = H,
+	find_neighbors([H|T], NewNodeId, H, NodeId).
 
 find_neighbors([], _, {_, NodePid}, Previous) ->
 	{NodePid, Previous}; % for sure is minimum, nobody has key higher than me
