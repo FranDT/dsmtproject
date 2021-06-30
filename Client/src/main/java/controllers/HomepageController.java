@@ -13,6 +13,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 public class HomepageController implements UIController {
 
@@ -29,7 +30,7 @@ public class HomepageController implements UIController {
     @FXML
     private VBox yourFilesBox;
 
-    private Map<String, String> fileList;
+    private Map<String, Set<String>> fileList;
     private HomepageManager manager;
     private String highlightedUsername;
     private String highlightedFilename;
@@ -44,7 +45,10 @@ public class HomepageController implements UIController {
     }
 
     private void createList(){
+        allFilesBox.getChildren().clear();
+        yourFilesBox.getChildren().clear();
         fileList = manager.getFileList();
+        System.out.println(fileList.toString());
         if(fileList == null){
             System.out.println("Cannot download list of files");
             return;
@@ -52,13 +56,24 @@ public class HomepageController implements UIController {
         Iterator iter = fileList.entrySet().iterator();
         while(iter.hasNext()){
             Map.Entry pair = (Map.Entry) iter.next();
-            FilePane newEntry = new FilePane((String)pair.getKey(), (String)pair.getValue());
-            newEntry.setOnMouseClicked( e -> {
-                highlight((String)pair.getKey(), (String)pair.getValue());
-            });
-            allFilesBox.getChildren().add(newEntry);
-            if(layoutManager.context.getAuthenticatedUser() == pair.getKey())
-                yourFilesBox.getChildren().add(newEntry);
+            String username = (String)pair.getKey();
+            // all files
+            Iterator iterFileUser = ((Set<String>)pair.getValue()).iterator();
+            while (iterFileUser.hasNext()) {
+                String filename = (String) iterFileUser.next();
+                FilePane newEntryAll = new FilePane(username, filename);
+                newEntryAll.setOnMouseClicked( e -> highlight(username, filename));
+                allFilesBox.getChildren().add(newEntryAll);
+                // single user files
+                if(layoutManager.context.getAuthenticatedUser().equals(username)) {
+                    FilePane newEntryUser = new FilePane(username, filename);
+                    newEntryUser.setOnMouseClicked( e -> {
+                        highlight(username, filename);
+                    });
+                    yourFilesBox.getChildren().add(newEntryUser);
+                }
+            }
+
         }
     }
 
@@ -68,7 +83,7 @@ public class HomepageController implements UIController {
     }
 
     public void downloadSelected(){
-        if(manager.getByKey(highlightedUsername, highlightedFilename) == 1)
+        if(manager.getByKey(layoutManager.context.getAuthenticatedUser() + "-" + highlightedUsername, highlightedFilename) == 1)
             System.out.println("Error: cannot connect to the server");
         else
             System.out.println("File downloaded correctly!");

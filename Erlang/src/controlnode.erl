@@ -16,32 +16,41 @@ loop(Servers, List) ->
 			loop(NewServers, List);
 		{DataNode, {leave}} ->
 			io:format("Central Node: Received leave request from ~w~n", [DataNode]),
-			{SuccessorPid, PredecessorPid} = find_neighbors(Servers, DataNode),
-			DataNode ! {granted, SuccessorPid},
+			{Successor, {_, PredecessorId}} = find_neighbors(Servers, DataNode),
+			DataNode ! {granted},
 			% wait for leaving confirmation
 			NewServers = wait_leave_completed(DataNode, Servers),
-			PredecessorPid ! {successor, SuccessorPid},
+			PredecessorId ! {successor, Successor},
 			loop(NewServers, List);
 
 		% Requests from Access Node
 		{ReqId, AccessNode, {insert, Key, Value}} ->
+			io:format("Prima insert~n", []),
 			insert_key(ReqId, AccessNode, Key, Value, Servers),
 			NewList = insert_list(List, Key),
+			io:format("Dopo insert~n", []),
 			loop(Servers, NewList);
 		{ReqId, AccessNode, {get, Key}} ->
+			io:format("Prima get~n", []),
 			get_key(ReqId, AccessNode, Key, Servers),
+			io:format("Dopo get~n", []),
 			loop(Servers, List);
 		{ReqId, AccessNode, {update, Key, Value}} ->
+			io:format("Prima update~n", []),
 			update_key(ReqId, AccessNode, Key, Value, Servers),
+			io:format("Dopo update~n", []),
 			loop(Servers, List);
 		{ReqId, AccessNode, {delete, Key}} ->
+			io:format("Prima delete~n", []),
 			delete_key(ReqId, AccessNode, Key, Servers),
 			NewList = remove_list(List, Key),
+			io:format("Dopo delete~n", []),
 			loop(Servers, NewList);
 		{ReqId, AccessNode, {getFileList}} ->
+			io:format("Prima getFileList~n", []),
 			AccessNode ! {ReqId, List},
+			io:format("Dopo getFileList~n", []),
 			loop(Servers, List);
-
 		{terminate} ->
 			io:format("Central Node: shutting down the system~n"),
 			lists:foreach(fun({_, DataNode}) -> DataNode ! {terminate} end, Servers),
@@ -60,12 +69,14 @@ join(DataNode, Servers) ->
 	if
 		length(NewServers) == 1 -> % first joining node
 			DataNode ! {granted, NewNodeId},
-			{NewServers, first, NewNodeId};
+			{NewServers, {DataNode, NewNodeId}, NewNodeId};
 		length(NewServers) =/= 1 ->
-			{SuccessorPid, PredecessorPid} = find_neighbors(Servers, NewNodeId),
-			DataNode ! {granted, NewNodeId, SuccessorPid},
-			PredecessorPid ! {successor, NewNodeId}, % send to a node his new successor
-			{NewServers, SuccessorPid, NewNodeId}
+			{Successor, {PredecessorPid, PredecessorId}} = find_neighbors(Servers, NewNodeId),
+			io:format("Successor: ~w~n", [Successor]),
+			io:format("PredecessorPid: ~w~n", [PredecessorId]),
+			DataNode ! {granted, NewNodeId, Successor}, 
+			PredecessorId ! {successor, Successor}, % send to a node his new successor
+			{NewServers, Successor, NewNodeId}
 	end.
 
 % also check special case: space key wrap
@@ -84,28 +95,27 @@ create_node_id(Servers) ->
 
 % find_successor is used both for servers and keys, because they share the same key-space
 find_neighbors([H|T], NewNodeId) ->
-	{NodeId, _} = H,
-	find_neighbors([H|T], NewNodeId, H, NodeId).
+	find_neighbors([H|T], NewNodeId, H, H).
 
-find_neighbors([], _, {_, NodePid}, Previous) ->
-	{NodePid, Previous}; % for sure is minimum, nobody has key higher than me
-find_neighbors([{NodeId, DataNode} | T], NewNodeId, MinNode, Previous) ->
+find_neighbors([], _, {NodeId, DataNode}, Preavious) ->
+	{{DataNode, NodeId}, Preavious}; % for sure is minimum, nobody has key higher than me
+find_neighbors([{NodeId, DataNode} | T], NewNodeId, MinNode, Preavious) ->
 	if
 		NodeId > NewNodeId -> 
-			{DataNode, Previous};
+			{{DataNode, NodeId}, Preavious};
 		true -> 
-			find_neighbors(T, NewNodeId, MinNode, NodeId)
+			find_neighbors(T, NewNodeId, MinNode, {NodeId, DataNode})
 	end.
 
 % NewNodeId and DataNode are passed to this function to avoid keeping it into Servers if it doesn't send joinCompleted
-manage_join(Servers, Successor, {NewNodeId, DataNode}) ->
+manage_join(Servers, {SuccessorPid, _}, {NewNodeId, DataNode}) ->
 	receive
 		% wait for this specific message. All the other messages are kept in the saved messages
 		% queue, until a match occurs or timeout
 		{DataNode, {joinCompleted}} ->
 			if
-				Successor =/= first ->
-					Successor ! {deleteOldKeys},
+				SuccessorPid =/= NewNodeId ->
+					SuccessorPid ! {deleteOldKeys},
 					Servers;
 				true -> Servers
 			end
@@ -119,12 +129,12 @@ manage_join(Servers, Successor, {NewNodeId, DataNode}) ->
 wait_leave_completed(DataNode, Servers) ->
 	receive
 		{DataNode, {leaveCompleted}} ->
-			[ToDelete] = lists:filter(fun({_, Y, _}) -> Y == DataNode end, Servers),
+			[ToDelete] = lists:filter(fun({_, Y}) -> Y == DataNode end, Servers),
 			NewServers = lists:delete(ToDelete, Servers),
 			NewServers
 	after 10000 ->
 		io:format("Central Node: not receiving leave completed from leaving node ~n"),
-		[ToDelete] = lists:filter(fun({_, Y, _}) -> Y == DataNode end, Servers),
+		[ToDelete] = lists:filter(fun({_, Y}) -> Y == DataNode end, Servers),
 		NewServers = lists:delete(ToDelete, Servers),
 		NewServers
 	end.
@@ -132,22 +142,22 @@ wait_leave_completed(DataNode, Servers) ->
 % ------------------------------------ CLIENT OPS --------------------------------------------------
 insert_key(ReqId, AccessNode, Key, Value, Servers) ->
 	HashedKey = binary:decode_unsigned(crypto:hash(sha256, Key), big),
-	{SuccessorPid, PredecessorPid} = find_neighbors(Servers, HashedKey),
+	{{SuccessorPid, _}, _} = find_neighbors(Servers, HashedKey),
 	SuccessorPid ! {ReqId, AccessNode, {insert, HashedKey, Value}}.
 
 get_key(ReqId, AccessNode, Key, Servers) ->
 	HashedKey = binary:decode_unsigned(crypto:hash(sha256, Key), big),
-	{SuccessorPid, PredecessorPid} = find_neighbors(Servers, HashedKey),
+	{{SuccessorPid, _}, _} = find_neighbors(Servers, HashedKey),
 	SuccessorPid ! {ReqId, AccessNode, {get, HashedKey}}.
 
 update_key(ReqId, AccessNode, Key, Value, Servers) ->
 	HashedKey = binary:decode_unsigned(crypto:hash(sha256, Key), big),
-	{SuccessorPid, PredecessorPid} = find_neighbors(Servers, HashedKey),
+	{{SuccessorPid, _}, _} = find_neighbors(Servers, HashedKey),
 	SuccessorPid ! {ReqId, AccessNode, {update, HashedKey, Value}}.
 
 delete_key(ReqId, AccessNode, Key, Servers) ->
 	HashedKey = binary:decode_unsigned(crypto:hash(sha256, Key), big),
-	{SuccessorPid, PredecessorPid} = find_neighbors(Servers, HashedKey),
+	{{SuccessorPid, _}, _} = find_neighbors(Servers, HashedKey),
 	SuccessorPid ! {ReqId, AccessNode, {delete, HashedKey}}.
 
 insert_list(List, Value) ->

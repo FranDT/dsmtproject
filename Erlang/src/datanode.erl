@@ -14,12 +14,12 @@ join(ControlNodeLocation) ->
 	{control_node, ControlNodeLocation} ! {self(), {join}},
 	receive
 		% not the first node, so it needs a part of the keys from the successor
-		{granted, NodeId, SuccessorPid} ->
+		{granted, NodeId, {SuccessorPid, SuccessorId}} ->
 			io:format("DataNode ~w: received granted message, with successor~n", [self()]),
 			io:format("   Successor: ~p~n   NewNodeId: ~p~n", [SuccessorPid, NodeId]),
-			Dict = ask_for_keys(SuccessorPid, NodeId, ControlNodeLocation),
+			Dict = ask_for_keys({SuccessorPid, SuccessorId}, NodeId, ControlNodeLocation),
 			% {NodeId, Dict},
-			loop(Dict, NodeId, ControlNodeLocation, SuccessorPid);
+			loop(Dict, NodeId, ControlNodeLocation, {SuccessorPid, SuccessorId});
 		% first node in the key space
 		{granted, NodeId} ->
 			io:format("DataNode ~w: received granted message, with successor~n", [self()]),
@@ -31,7 +31,7 @@ join(ControlNodeLocation) ->
 			io:format("DataNode ~w: joining unexpected termination~n", [self()])
 	end.
 
-loop(Dict, NodeId, ControlNodeLocation, SuccessorPid) ->
+loop(Dict, NodeId, ControlNodeLocation, Successor) ->
 	io:format("Data Node ~w: loop -> Dict lenght: ~w~n",[self(), length(dict:to_list(Dict))]),
 	receive
 		{successor, NewSuccessor} ->
@@ -41,49 +41,49 @@ loop(Dict, NodeId, ControlNodeLocation, SuccessorPid) ->
 			io:format("Data Node ~w: predecessor is asking for keys~n", [self()]),
 			OldKeysList = send_keys(NewPredecessorPid, NewPredecessorId, NodeId, Dict),
 			NewDict = delete_old_keys(OldKeysList, dict:to_list(Dict)),
-			loop(NewDict, NodeId, ControlNodeLocation, SuccessorPid);
+			loop(NewDict, NodeId, ControlNodeLocation, Successor);
 		
 		% Client ops
 		{ReqId, AccessNode, {insert, Key, Value}}  ->
 			io:format("Data Node ~w: insert request arrived~n", [self()]),
 			NewDict = insert_key_value(ReqId, AccessNode, Dict, Key, Value),
-			loop(NewDict, NodeId, ControlNodeLocation, SuccessorPid);
+			loop(NewDict, NodeId, ControlNodeLocation, Successor);
 		{ReqId, AccessNode, {get, Key}} ->
 			io:format("Data Node ~w: get request arrived~n", [self()]),
 			get_value_from_key(ReqId, AccessNode, Dict, Key),
-			loop(Dict, NodeId, ControlNodeLocation, SuccessorPid);
+			loop(Dict, NodeId, ControlNodeLocation, Successor);
 		{ReqId, AccessNode, {update, Key, Value}} ->
 			io:format("Data Node ~w: update request arrived~n", [self()]),
 			NewDict = update_key_value(ReqId, AccessNode, Dict, Key, Value),
-			loop(NewDict, NodeId, ControlNodeLocation, SuccessorPid);
+			loop(NewDict, NodeId, ControlNodeLocation, Successor);
 		{ReqId, AccessNode, {delete, Key}} ->
 			io:format("Data Node ~w: delete request arrived~n", [self()]),
 			NewDict = delete_value_from_key(ReqId, AccessNode, Dict, Key),
-			loop(NewDict, NodeId, ControlNodeLocation, SuccessorPid);
+			loop(NewDict, NodeId, ControlNodeLocation, Successor);
 
 		{leave} ->
 			io:format("Data Node ~w: leave request arrived~n", [self()]),
-			Granted = leave(Dict, ControlNodeLocation),
+			Granted = leave(Dict, ControlNodeLocation, Successor),
 			if
 				Granted == true ->
 					io:format("Data Node ~w: leaving...~n", [self()]);
 				% if leaving was not granted, data node is in the loop again
 				Granted == false ->
-					loop(Dict, NodeId, ControlNodeLocation, SuccessorPid)
+					loop(Dict, NodeId, ControlNodeLocation, Successor)
 			end;
 		{insertFromLeaving, RecvList} ->
 			io:format("Data Node ~w: received list from leaving node, length is: ~p~n", [self(), length(RecvList)]),
 			RecvDict = dict:from_list(RecvList),
 			NewDict = dict:merge(fun({_, Y, _}) -> Y end, Dict, RecvDict),
-			loop(NewDict, NodeId, ControlNodeLocation, SuccessorPid);
+			loop(NewDict, NodeId, ControlNodeLocation, Successor);
 		{terminate} ->
 			io:format("Data Node ~w: trusted termination~n", [self()]);
 		WrongMessage ->
 			io:format("Data Node ~w: Wrong message ~p~n", [self(), WrongMessage]),
-			loop(Dict, NodeId, ControlNodeLocation, SuccessorPid)
+			loop(Dict, NodeId, ControlNodeLocation, Successor)
 	end.
 
-ask_for_keys(SuccessorPid, NewNodeId, ControlNodeLocation) ->
+ask_for_keys({SuccessorPid, _}, NewNodeId, ControlNodeLocation) ->
 	SuccessorPid ! {self(), {ask, NewNodeId}},
 	receive
 		% receive dictionary and say it to the control node
@@ -120,11 +120,14 @@ delete_old_keys(OldKeysList, DictList) ->
 			dict:from_list(NewList)
 	end.
 
-leave(Dict, ControlNodeLocation) ->
+leave(Dict, ControlNodeLocation, {SuccessorPid, _}) ->
 	{control_node, ControlNodeLocation} ! {self(), {leave}},
 	receive
-		{granted, SuccessorPid} ->
-			SuccessorPid ! {insertFromLeaving, dict:to_list(Dict)},
+		{granted} ->
+			if
+				SuccessorPid =/= self() ->
+					SuccessorPid ! {insertFromLeaving, dict:to_list(Dict)}
+			end,
 			{control_node, ControlNodeLocation} ! {self(), {leaveCompleted}},
 			true;
 		{notgranted, Reason} ->
@@ -170,7 +173,7 @@ update_key_value(ReqId, AccessNode, Dict, Key, Value) ->
 			AccessNode ! {ReqId, 4};
 			%control_node ! {get, Key, notfound};
 		true ->
-			NewDict = dict:update(Key, Value, Dict), % il secondo arg dovrebbe essere una fun
+			NewDict = dict:update(Key, fun (_) -> Value end, Dict), % il secondo arg dovrebbe essere una fun
 			AccessNode ! {ReqId, 0},
 			%control_node ! {get, Key, Value}
 			NewDict

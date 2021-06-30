@@ -9,8 +9,10 @@ public class FilePane extends AnchorPane {
     private Label fileName;
 
     public FilePane(String username, String fileName){
-        this.username.setText(username);
-        this.fileName.setText(fileName);
-
+        this.username = new Label(username);
+        this.fileName = new Label(fileName);
+        this.getChildren().addAll(this.username, this.fileName);
+        this.fileName.setLayoutX(50.0);
     }
+
 }

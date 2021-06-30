@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ErlangConnector {
@@ -89,8 +88,9 @@ public class ErlangConnector {
 
             reply = exchanger.exchange(reply, 5000, TimeUnit.MILLISECONDS);
             requests.remove(requestId);
-            if(reply instanceof OtpErlangInt){
-                return new Response(null, ((OtpErlangInt) reply).intValue());
+            System.out.println(reply.getClass() + "\n" + reply.toString());
+            if(reply instanceof OtpErlangLong){
+                return new Response(null, (int) ((OtpErlangLong) reply).longValue());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,8 +121,9 @@ public class ErlangConnector {
 
             reply = exchanger.exchange(reply, 12000, TimeUnit.MILLISECONDS);
             requests.remove(requestId);
-            if(reply instanceof OtpErlangInt){
-                return new Response(null, ((OtpErlangInt) reply).intValue());
+            System.out.println(reply.getClass() + "\n" + reply.toString());
+            if(reply instanceof OtpErlangLong){
+                return new Response(null, (int) ((OtpErlangLong) reply).longValue());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -149,8 +150,9 @@ public class ErlangConnector {
 
             reply = exchanger.exchange(reply, 12000, TimeUnit.MILLISECONDS);
             requests.remove(requestId);
-            if(reply instanceof OtpErlangInt){
-                return new Response(null, ((OtpErlangInt) reply).intValue());
+            System.out.println(reply.getClass() + "\n" + reply.toString());
+            if(reply instanceof OtpErlangLong){
+                return new Response(null, (int) ((OtpErlangLong) reply).longValue());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -161,7 +163,7 @@ public class ErlangConnector {
     public static Response getByKey(String key) {
         OtpErlangLong requestId = new OtpErlangLong(nextRequestId.getAndIncrement());
         OtpErlangPid pid = mbox.self();
-        OtpErlangAtom operation = new OtpErlangAtom("insert");
+        OtpErlangAtom operation = new OtpErlangAtom("get");
         OtpErlangString keyOperation = new OtpErlangString(key);
         OtpErlangTuple body = new OtpErlangTuple(new OtpErlangObject[]{operation, keyOperation});
         OtpErlangTuple reqMsg = new OtpErlangTuple(new OtpErlangObject[]{requestId, pid, body});
@@ -176,8 +178,9 @@ public class ErlangConnector {
 
             reply = exchanger.exchange(reply, 10000, TimeUnit.MILLISECONDS);
             requests.remove(requestId);
+            System.out.println(reply.getClass() + "\n" + reply.toString());
             if(reply instanceof OtpErlangString){
-                return new Response(reply.toString(), 0);
+                return new Response(((OtpErlangString)reply).stringValue(), 0);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -202,11 +205,13 @@ public class ErlangConnector {
 
             reply = exchanger.exchange(reply, 10000, TimeUnit.MILLISECONDS);
             requests.remove(requestId);
+            System.out.println(reply.getClass() + "\n" + reply.toString());
             if(reply instanceof OtpErlangList){
                 String res = "";
                 Iterator iter = ((OtpErlangList) reply).iterator();
                 while(iter.hasNext()){
-                    res += iter.next() + ";";
+                    OtpErlangString elem = (OtpErlangString) iter.next();
+                    res += elem.stringValue() + ";";
                 }
                 return new Response(res, 0);
             }

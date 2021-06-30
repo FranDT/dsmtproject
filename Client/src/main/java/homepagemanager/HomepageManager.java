@@ -6,16 +6,15 @@ import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.file.StandardOpenOption;
+import java.util.*;
 
 public class HomepageManager {
 
     public HomepageManager() {}
 
-    public Map<String, String> getFileList() {
-        Map<String, String> map = new HashMap<>();
+    public Map<String, Set<String>> getFileList() {
+        Map<String, Set<String>> map = new HashMap<>();
 
         String list = RestClient.getList();
         if(list.equals("Cannot connect to the server"))
@@ -24,7 +23,12 @@ public class HomepageManager {
             String[] temp = list.split(";");
             for (String s : temp) {
                 String[] app = s.split("-");
-                map.put(app[0], app[1]);
+                String username = app[0];
+                String filename = app[1];
+                if (!map.containsKey(username)) {
+                    map.put(username, new HashSet<>());
+                }
+                map.get(username).add(filename);
             }
         }
         return map;
@@ -40,7 +44,11 @@ public class HomepageManager {
         else {
             try{
                 byte[] bytes = Base64.getDecoder().decode(result.getBytes());
-                Files.write(Paths.get(System.getProperty("user.dir") + "/downloadedFiles"), bytes);
+                String basePath = System.getProperty("user.dir") + "/downloadedFilesDir/";
+                if (!Files.exists(Paths.get(basePath))) {
+                    Files.createDirectory(Paths.get(basePath));
+                }
+                Files.write(Paths.get(basePath + fileName), bytes);
             }
             catch(IOException ioe){
                 ioe.printStackTrace();

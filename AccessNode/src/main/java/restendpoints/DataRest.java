@@ -8,6 +8,8 @@ import pojo.Response;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Path("data")
 public class DataRest extends Application {
@@ -19,8 +21,10 @@ public class DataRest extends Application {
         if(!ErlangConnector.isLaunched()){
             return new Response(null, 1);
         }
-        if (AccessController.isPresent(key)) {
-            return ErlangConnector.getByKey(key);
+        if (AccessController.isPresent(key.split("-")[0])) {
+            String usernameAndFile = Arrays.stream(key.split("-")).skip(1).collect(Collectors.joining("-"));
+            System.out.println("GET FILE " + usernameAndFile);
+            return ErlangConnector.getByKey(usernameAndFile);
         }
         return new Response(null, 1);
     }
@@ -37,7 +41,7 @@ public class DataRest extends Application {
         if(!ErlangConnector.isLaunched()){
             return new Response(null, 3);
         }
-        if (AccessController.isPresent(key)) {
+        if (AccessController.isPresent(key.split("-")[0])) {
             return ErlangConnector.updateFile(key, value);
         }
         return new Response(null, 1);
@@ -56,7 +60,7 @@ public class DataRest extends Application {
             return new Response(null, 3);
         }
 
-        if (AccessController.isPresent(key)) {
+        if (AccessController.isPresent(key.split("-")[0])) {
             return ErlangConnector.insert(key, value);
         }
         return new Response(null, 1);
@@ -71,7 +75,7 @@ public class DataRest extends Application {
             return new Response(null, 1);
         }
 
-        if (AccessController.isPresent(key)) {
+        if (AccessController.isPresent(key.split("-")[0])) {
             return ErlangConnector.deleteByKey(key);
         }
 
