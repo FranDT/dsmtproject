@@ -20,13 +20,13 @@ public class HomepageManager {
         String list = RestClient.getList();
         if(list.equals("Cannot connect to the server"))
             return null;
-
-        String[] temp = list.split(";");
-        for(String s : temp){
-            String[] app = s.split("-");
-            map.put(app[0],app[1]);
+        if (!list.isEmpty()) {
+            String[] temp = list.split(";");
+            for (String s : temp) {
+                String[] app = s.split("-");
+                map.put(app[0], app[1]);
+            }
         }
-
         return map;
     }
 
@@ -53,40 +53,54 @@ public class HomepageManager {
         return RestClient.delete(username + "-" + fileName);
     }
 
-    public int uploadFile(String username, String fileName){
-        String fileValue = getFileContent();
-        if(fileValue.equals("File not uploaded"))
+    public int uploadFile(String username){
+        Map<String, String> fileMap = getFileContent();
+        String fileName = fileMap.keySet().stream().findFirst().get();
+        if(fileName.equals("File not uploaded"))
             return 3;
-        else if(fileValue.equals("An error occurred while reading the file, please try again"))
+        else if(fileName.equals("An error occurred while reading the file, please try again"))
             return 2;
-        return RestClient.post(username + "-" + fileName, fileValue);
+        return RestClient.post(username + "-" + fileName, fileMap.get(fileName));
     }
 
-    public int updateFile(String username, String fileName){
-        String fileValue = getFileContent();
-        if(fileValue.equals("File not uploaded"))
+    public int updateFile(String username, String filename){
+        Map<String, String> fileMap = getFileContent();
+        String possibleFileName = fileMap.keySet().stream().findFirst().get();
+        if(possibleFileName.equals("File not uploaded"))
             return 3;
-        else if(fileValue.equals("An error occurred while reading the file, please try again"))
+        else if(possibleFileName.equals("An error occurred while reading the file, please try again"))
             return 2;
-        return RestClient.put(username + "-" + fileName, fileValue);
+
+        if (filename.equals(Paths.get(possibleFileName).getFileName().toString())) {
+            return RestClient.put(username + "-" + filename, fileMap.get(filename));
+        }
+        return 2;
     }
 
-    private String getFileContent(){
+    private Map<String, String> getFileContent(){
+        Map<String, String> result = new HashMap<>();
         JFileChooser chooser = new JFileChooser();
         byte[] bytes = null;
         int returnVal = chooser.showOpenDialog(null);
-        if(returnVal != JFileChooser.APPROVE_OPTION)
-            return "File not uploaded";
-        try {
-            String path = chooser.getSelectedFile().getAbsolutePath();
-            bytes = Files.readAllBytes(Paths.get(path));
+        if(returnVal != JFileChooser.APPROVE_OPTION) {
+            result.put("File not uploaded", null);
         }
-        catch(IOException ioe){
-            ioe.printStackTrace();
+        else {
+            String path = "";
+            try {
+                path = chooser.getSelectedFile().getAbsolutePath();
+                bytes = Files.readAllBytes(Paths.get(path));
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+            if (bytes == null) {
+                result.put("An error occurred while reading the file, please try again", null);
+            }
+            else {
+                result.put(path, new String(Base64.getEncoder().encode(bytes)));
+            }
         }
-        if(bytes == null)
-            return "An error occurred while reading the file, please try again";
-        return new String(Base64.getEncoder().encode(bytes));
+        return result;
     }
 
     public int logout(String username){

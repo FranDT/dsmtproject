@@ -11,15 +11,16 @@ import java.util.concurrent.Exchanger;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ErlangConnector {
 
     private static final String serverNodeName;
     private static final String serverRegisteredName;
     private static final String clientNodeName;
-    private static final AtomicInteger nextRequestId = new AtomicInteger(0); //shared counter
+    private static final AtomicLong nextRequestId = new AtomicLong(0); //shared counter
     private static boolean launched = false;
-    private static ConcurrentHashMap<Integer, Exchanger<OtpErlangObject>> requests = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<Long, Exchanger<OtpErlangObject>> requests = new ConcurrentHashMap<>();
     private static OtpNode clientNode;  //initialized in constructor
     private static OtpMbox mbox;
     private static Thread dispatchingThread;
@@ -51,8 +52,8 @@ public class ErlangConnector {
                try{
                    OtpErlangObject msg = mbox.receive();
                    OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
-                   OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
-                   Exchanger<OtpErlangObject> exchanger = requests.get(requestIdResponse.intValue());
+                   OtpErlangLong requestIdResponse = (OtpErlangLong) msgTuple.elementAt(0);
+                   Exchanger<OtpErlangObject> exchanger = requests.get(requestIdResponse.longValue());
                    if(exchanger != null){
                        exchanger.exchange(msgTuple.elementAt(1), 0, TimeUnit.MILLISECONDS);
                    }
@@ -71,7 +72,7 @@ public class ErlangConnector {
 
     public static Response deleteByKey(String key) {
         // { RequestId, PID, {delete, key} }
-        OtpErlangInt requestId = new OtpErlangInt(nextRequestId.getAndIncrement());
+        OtpErlangLong requestId = new OtpErlangLong(nextRequestId.getAndIncrement());
         OtpErlangPid pid = mbox.self();
         OtpErlangAtom operation = new OtpErlangAtom("delete");
         OtpErlangString keyOperation = new OtpErlangString(key);
@@ -83,7 +84,7 @@ public class ErlangConnector {
 
         try {
             Exchanger<OtpErlangObject> exchanger = new Exchanger<>();
-            requests.put(requestId.intValue(), exchanger);
+            requests.put(requestId.longValue(), exchanger);
             mbox.send(serverRegisteredName, serverNodeName, reqMsg);
 
             reply = exchanger.exchange(reply, 5000, TimeUnit.MILLISECONDS);
@@ -102,7 +103,7 @@ public class ErlangConnector {
     }
 
     public static Response insert(String key, String value) {
-        OtpErlangInt requestId = new OtpErlangInt(nextRequestId.getAndIncrement());
+        OtpErlangLong requestId = new OtpErlangLong(nextRequestId.getAndIncrement());
         OtpErlangPid pid = mbox.self();
         OtpErlangAtom operation = new OtpErlangAtom("insert");
         OtpErlangString keyOperation = new OtpErlangString(key);
@@ -115,7 +116,7 @@ public class ErlangConnector {
 
         try {
             Exchanger<OtpErlangObject> exchanger = new Exchanger<>();
-            requests.put(requestId.intValue(), exchanger);
+            requests.put(requestId.longValue(), exchanger);
             mbox.send(serverRegisteredName, serverNodeName, reqMsg);
 
             reply = exchanger.exchange(reply, 12000, TimeUnit.MILLISECONDS);
@@ -130,7 +131,7 @@ public class ErlangConnector {
     }
 
     public static Response updateFile(String key, String value) {
-        OtpErlangInt requestId = new OtpErlangInt(nextRequestId.getAndIncrement());
+        OtpErlangLong requestId = new OtpErlangLong(nextRequestId.getAndIncrement());
         OtpErlangPid pid = mbox.self();
         OtpErlangAtom operation = new OtpErlangAtom("update");
         OtpErlangString keyOperation = new OtpErlangString(key);
@@ -143,7 +144,7 @@ public class ErlangConnector {
 
         try {
             Exchanger<OtpErlangObject> exchanger = new Exchanger<>();
-            requests.put(requestId.intValue(), exchanger);
+            requests.put(requestId.longValue(), exchanger);
             mbox.send(serverRegisteredName, serverNodeName, reqMsg);
 
             reply = exchanger.exchange(reply, 12000, TimeUnit.MILLISECONDS);
@@ -158,7 +159,7 @@ public class ErlangConnector {
     }
 
     public static Response getByKey(String key) {
-        OtpErlangInt requestId = new OtpErlangInt(nextRequestId.getAndIncrement());
+        OtpErlangLong requestId = new OtpErlangLong(nextRequestId.getAndIncrement());
         OtpErlangPid pid = mbox.self();
         OtpErlangAtom operation = new OtpErlangAtom("insert");
         OtpErlangString keyOperation = new OtpErlangString(key);
@@ -170,7 +171,7 @@ public class ErlangConnector {
 
         try {
             Exchanger<OtpErlangObject> exchanger = new Exchanger<>();
-            requests.put(requestId.intValue(), exchanger);
+            requests.put(requestId.longValue(), exchanger);
             mbox.send(serverRegisteredName, serverNodeName, reqMsg);
 
             reply = exchanger.exchange(reply, 10000, TimeUnit.MILLISECONDS);
@@ -185,7 +186,7 @@ public class ErlangConnector {
     }
 
     public static Response getFileList() {
-        OtpErlangInt requestId = new OtpErlangInt(nextRequestId.getAndIncrement());
+        OtpErlangLong requestId = new OtpErlangLong(nextRequestId.getAndIncrement());
         OtpErlangPid pid = mbox.self();
         OtpErlangAtom operation = new OtpErlangAtom("getFileList");
         OtpErlangTuple body = new OtpErlangTuple(new OtpErlangObject[]{operation});
@@ -196,7 +197,7 @@ public class ErlangConnector {
 
         try {
             Exchanger<OtpErlangObject> exchanger = new Exchanger<>();
-            requests.put(requestId.intValue(), exchanger);
+            requests.put(requestId.longValue(), exchanger);
             mbox.send(serverRegisteredName, serverNodeName, reqMsg);
 
             reply = exchanger.exchange(reply, 10000, TimeUnit.MILLISECONDS);

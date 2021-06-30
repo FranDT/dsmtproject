@@ -2,6 +2,6 @@
 	"AuthenticationNode": "http://localhost:8080/AuthenticationNode/",
 	"Cookie": "",
 	"ControlNodeServerName": "control_node@localhost",
-	"ControlNodeServerRegisteredName": "control_server",
+	"ControlNodeServerRegisteredName": "control_node",
 	"AccessNodeName": "access_node"
 }

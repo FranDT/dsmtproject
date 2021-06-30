@@ -22,6 +22,10 @@ public class AuthConnector {
 
         javax.ws.rs.core.Response response = invocationBuilder.get();
         Response myResponse = response.readEntity(Response.class);
+
+        if(myResponse.getStatus() == 0){
+            AccessController.addActiveUser(key);
+        }
         return myResponse;
     }
 

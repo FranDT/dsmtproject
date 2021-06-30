@@ -44,9 +44,9 @@ public class LayoutManager {
         FXMLLoader loader = getLoader(resource);
         // ref: "https://stackoverflow.com/questions/37164835/how-can-i-fix-a-nullpointerexception-when-interacting-with-fxml-elements-in-the#:~:text=The%20FXMLLoader%20creates%20a%20instance%20of%20the%20controller,and%20use%20getController%20%28%29%20after%20loading%20the%20fxml."
         try {
-            Parent root = loader.load();
+            primary.setScene(new Scene(loader.load(), 862, 628));
         }
-        catch (Exception e) {
+        catch(Exception e){
             e.printStackTrace();
         }
         UIController controller = loader.getController();

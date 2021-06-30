@@ -17,7 +17,7 @@ public class ControlRest extends Application {
         if(!ErlangConnector.isLaunched()) {
             return new Response(null, 1);
         }
-
+        System.out.println("Erlang connector lanciato");
         // TODO: Conviene aggiungere anche lo username da controllare qui?
 
         return ErlangConnector.getFileList();

@@ -2,6 +2,7 @@ package controllers;
 
 import context.LayoutManager;
 import context.LayoutManagerFactory;
+import context.Path;
 import homepagemanager.FilePane;
 import homepagemanager.HomepageManager;
 import javafx.event.EventHandler;
@@ -74,7 +75,7 @@ public class HomepageController implements UIController {
     }
 
     public void uploadFile(){
-        int res = manager.uploadFile(highlightedUsername, highlightedFilename);
+        int res = manager.uploadFile(layoutManager.context.getAuthenticatedUser());
         if(res == 1)
             System.out.println("Error: cannot connect to the server");
         else if(res == 2)
@@ -120,8 +121,10 @@ public class HomepageController implements UIController {
     public void logoutHandler(){
         if(manager.logout(layoutManager.context.getAuthenticatedUser()) == 2)
             System.out.println("Error during disconnection from the server, please contact support");
-        else
+        else {
             System.out.println("Logout successful, see you soon!");
+            layoutManager.setContent(Path.LOGIN);
+        }
     }
 
 }
