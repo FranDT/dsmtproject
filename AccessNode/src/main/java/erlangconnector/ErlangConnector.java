@@ -52,7 +52,7 @@ public class ErlangConnector {
                    OtpErlangObject msg = mbox.receive();
                    OtpErlangTuple msgTuple = (OtpErlangTuple) msg;
                    OtpErlangInt requestIdResponse = (OtpErlangInt) msgTuple.elementAt(0);
-                   Exchanger<OtpErlangObject> exchanger = requests.get(requestIdResponse);
+                   Exchanger<OtpErlangObject> exchanger = requests.get(requestIdResponse.intValue());
                    if(exchanger != null){
                        exchanger.exchange(msgTuple.elementAt(1), 0, TimeUnit.MILLISECONDS);
                    }

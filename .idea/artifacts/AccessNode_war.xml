@@ -8,7 +8,7 @@
       </options>
     </properties>
     <root id="archive" name="AccessNode-1.0-SNAPSHOT.war">
-      <element id="artifact" artifact-name="AccessNode0:war exploded" />
+      <element id="artifact" artifact-name="AccessNode:war exploded" />
     </root>
   </artifact>
 </component>
