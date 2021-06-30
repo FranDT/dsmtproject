@@ -71,10 +71,10 @@ public class HomepageManager {
         else if(possibleFileName.equals("An error occurred while reading the file, please try again"))
             return 2;
 
-        if (filename.equals(Paths.get(possibleFileName).getFileName().toString())) {
+        if (filename.equals(possibleFileName)) {
             return RestClient.put(username + "-" + filename, fileMap.get(filename));
         }
-        return 2;
+        return 5;
     }
 
     private Map<String, String> getFileContent(){
@@ -97,7 +97,7 @@ public class HomepageManager {
                 result.put("An error occurred while reading the file, please try again", null);
             }
             else {
-                result.put(path, new String(Base64.getEncoder().encode(bytes)));
+                result.put(Paths.get(path).getFileName().toString(), new String(Base64.getEncoder().encode(bytes)));
             }
         }
         return result;

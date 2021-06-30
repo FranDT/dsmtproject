@@ -82,6 +82,8 @@ public class HomepageController implements UIController {
             System.out.println("A problem occured while trying to upload the file");
         else if(res == 3)
             return;
+        else if(res == 4)
+            System.out.println("Error: it was not possible to insert the file inside the data node");
         else {
             System.out.println("File uploaded correctly!");
             refreshList();
@@ -93,8 +95,17 @@ public class HomepageController implements UIController {
             System.out.println("You can't update a file it's not yours! Please select a file from the Your Files tab");
             return;
         }
-        if(manager.updateFile(highlightedUsername, highlightedFilename) == 1)
+        int result = manager.updateFile(highlightedUsername, highlightedFilename);
+        if(result == 1)
             System.out.println("Error: cannot connect to the server");
+        else if(result == 2)
+            System.out.println("A problem occured while trying to upload the file");
+        else if(result == 3)
+            return;
+        else if(result == 4)
+            System.out.println("Error: it was not possible to insert the file inside the data node");
+        else if(result == 5)
+            System.out.println("Error: you're trying to upload a different file! Please select the correct one");
         else {
             System.out.println("File updated correctly!");
             refreshList();
@@ -106,8 +117,11 @@ public class HomepageController implements UIController {
             System.out.println("You can't remove a file it's not yours! Please select a file from the Your Files tab");
             return;
         }
-        if(manager.removeSelected(highlightedUsername, highlightedFilename) == 1)
+        int result = manager.removeSelected(highlightedUsername, highlightedFilename);
+        if(result == 1)
             System.out.println("Error: cannot connect to the server");
+        else if(result == 2)
+            System.out.println("Error: the file was not found inside the ring");
         else {
             System.out.println("File removed correctly!");
             refreshList();
