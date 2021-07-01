@@ -82,15 +82,22 @@ public class HomepageController implements UIController {
         highlightedUsername = username;
     }
 
+    private void removeHighlight(){
+        highlightedFilename = "";
+        highlightedUsername = "";
+    }
+
     public void downloadSelected(){
         if(manager.getByKey(layoutManager.context.getAuthenticatedUser() + "-" + highlightedUsername, highlightedFilename) == 1)
             System.out.println("Error: cannot connect to the server");
         else
             System.out.println("File downloaded correctly!");
+        removeHighlight();
     }
 
     public void uploadFile(){
         int res = manager.uploadFile(layoutManager.context.getAuthenticatedUser());
+        removeHighlight();
         if(res == 1)
             System.out.println("Error: cannot connect to the server");
         else if(res == 2)
@@ -111,6 +118,7 @@ public class HomepageController implements UIController {
             return;
         }
         int result = manager.updateFile(highlightedUsername, highlightedFilename);
+        removeHighlight();
         if(result == 1)
             System.out.println("Error: cannot connect to the server");
         else if(result == 2)
@@ -133,6 +141,7 @@ public class HomepageController implements UIController {
             return;
         }
         int result = manager.removeSelected(highlightedUsername, highlightedFilename);
+        removeHighlight();
         if(result == 1)
             System.out.println("Error: cannot connect to the server");
         else if(result == 2)
