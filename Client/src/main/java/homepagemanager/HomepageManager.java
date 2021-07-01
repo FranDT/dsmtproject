@@ -105,7 +105,7 @@ public class HomepageManager {
                 result.put("An error occurred while reading the file, please try again", null);
             }
             else {
-                result.put(Paths.get(path).getFileName().toString(), new String(Base64.getEncoder().encode(bytes)));
+                result.put(Paths.get(path).getFileName().toString().replace("-", "_"), new String(Base64.getEncoder().encode(bytes)));
             }
         }
         return result;
